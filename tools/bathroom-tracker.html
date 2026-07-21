@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bathroom Break Tracker - Cloud Sync</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Icons (same as before)
+        const Clock = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        );
+
+        const Users = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        );
+
+        const Plus = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const X = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const Play = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        );
+
+        const Square = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            </svg>
+        );
+
+        const Calendar = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        );
+
+        const Cloud = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+            </svg>
+        );
+
+        const Settings = ({ size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6m0 6v6m-9-9h6m6 0h6"></path>
+            </svg>
+        );
+
+        const Edit = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        );
+
+        const Trash = ({ size = 16 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+        );
+
+        function BathroomTracker() {
+            const [classes, setClasses] = useState([]);
+            const [currentClassId, setCurrentClassId] = useState(null);
+            const [newClassName, setNewClassName] = useState('');
+            const [students, setStudents] = useState([]);
+            const [newStudentName, setNewStudentName] = useState('');
+            const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+            const [records, setRecords] = useState({});
+            const [statsRange, setStatsRange] = useState(7);
+            const [showImportModal, setShowImportModal] = useState(false);
+            const [showSetupModal, setShowSetupModal] = useState(false);
+            const [showEditModal, setShowEditModal] = useState(false);
+            const [editingTrip, setEditingTrip] = useState(null);
+            const [editTimeOut, setEditTimeOut] = useState('');
+            const [editTimeIn, setEditTimeIn] = useState('');
+            const [scriptUrl, setScriptUrl] = useState(localStorage.getItem('sheetsScriptUrl') || '');
+            const [isConnected, setIsConnected] = useState(false);
+            const [isSyncing, setIsSyncing] = useState(false);
+            const [lastSync, setLastSync] = useState(null);
+
+            // Check if connected on load
+            useEffect(() => {
+                const savedUrl = localStorage.getItem('sheetsScriptUrl');
+                if (savedUrl) {
+                    setScriptUrl(savedUrl);
+                    setIsConnected(true);
+                    loadFromSheets(savedUrl);
+                } else {
+                    // Fall back to local storage if not connected
+                    const savedClasses = localStorage.getItem('classes');
+                    const savedRecords = localStorage.getItem('records');
+                    const savedCurrentClassId = localStorage.getItem('currentClassId');
+                    
+                    if (savedClasses) {
+                        const parsedClasses = JSON.parse(savedClasses);
+                        setClasses(parsedClasses);
+                        if (savedCurrentClassId && parsedClasses.find(c => c.id === savedCurrentClassId)) {
+                            setCurrentClassId(savedCurrentClassId);
+                        } else if (parsedClasses.length > 0) {
+                            setCurrentClassId(parsedClasses[0].id);
+                        }
+                    }
+                    if (savedRecords) setRecords(JSON.parse(savedRecords));
+                }
+            }, []);
+
+            // Load students when current class changes
+            useEffect(() => {
+                if (currentClassId) {
+                    const currentClass = classes.find(c => c.id === currentClassId);
+                    if (currentClass) {
+                        setStudents(currentClass.students || []);
+                    }
+                }
+            }, [currentClassId, classes]);
+
+            // Save to Google Sheets when data changes
+            useEffect(() => {
+                if (isConnected && scriptUrl && classes.length > 0) {
+                    saveToSheets();
+                }
+            }, [classes, records]);
+
+            // Also save to local storage as backup
+            useEffect(() => {
+                localStorage.setItem('classes', JSON.stringify(classes));
+            }, [classes]);
+
+            useEffect(() => {
+                if (currentClassId) {
+                    localStorage.setItem('currentClassId', currentClassId);
+                }
+            }, [currentClassId]);
+
+            useEffect(() => {
+                localStorage.setItem('records', JSON.stringify(records));
+            }, [records]);
+
+            const loadFromSheets = async (url) => {
+                setIsSyncing(true);
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (data.classes) {
+                        setClasses(data.classes);
+                        if (data.classes.length > 0 && !currentClassId) {
+                            setCurrentClassId(data.classes[0].id);
+                        }
+                    }
+                    if (data.records) {
+                        setRecords(data.records);
+                    }
+                    setLastSync(new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.error('Error loading from Sheets:', error);
+                    alert('Could not connect to Google Sheets. Check your Script URL.');
+                } finally {
+                    setIsSyncing(false);
+                }
+            };
+
+            const saveToSheets = async () => {
+                if (!scriptUrl) return;
+                
+                try {
+                    const data = {
+                        classes: classes,
+                        records: records
+                    };
+                    
+                    await fetch(scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    setLastSync(new Date().toLocaleTimeString());
+                } catch (error) {
+                    console.error('Error saving to Sheets:', error);
+                }
+            };
+
+            const connectToSheets = () => {
+                if (scriptUrl.trim()) {
+                    localStorage.setItem('sheetsScriptUrl', scriptUrl.trim());
+                    setIsConnected(true);
+                    loadFromSheets(scriptUrl.trim());
+                    setShowSetupModal(false);
+                }
+            };
+
+            const disconnectFromSheets = () => {
+                if (confirm('Disconnect from Google Sheets? Your data will stay in local storage.')) {
+                    localStorage.removeItem('sheetsScriptUrl');
+                    setIsConnected(false);
+                    setScriptUrl('');
+                }
+            };
+
+            const addClass = () => {
+                if (newClassName.trim()) {
+                    const newClass = {
+                        id: Date.now().toString(),
+                        name: newClassName.trim(),
+                        students: []
+                    };
+                    setClasses([...classes, newClass]);
+                    setCurrentClassId(newClass.id);
+                    setNewClassName('');
+                }
+            };
+
+            const deleteClass = (classId) => {
+                if (confirm('Are you sure you want to delete this class?')) {
+                    setClasses(classes.filter(c => c.id !== classId));
+                    if (currentClassId === classId) {
+                        const remaining = classes.filter(c => c.id !== classId);
+                        setCurrentClassId(remaining.length > 0 ? remaining[0].id : null);
+                    }
+                }
+            };
+
+            const updateClassStudents = (classId, newStudents) => {
+                setClasses(classes.map(c => 
+                    c.id === classId ? { ...c, students: newStudents } : c
+                ));
+            };
+
+            const addStudent = () => {
+                if (newStudentName.trim() && currentClassId) {
+                    const newStudent = { id: Date.now(), name: newStudentName.trim() };
+                    const updatedStudents = [...students, newStudent];
+                    updateClassStudents(currentClassId, updatedStudents);
+                    setNewStudentName('');
+                }
+            };
+
+            const removeStudent = (id) => {
+                if (currentClassId) {
+                    const updatedStudents = students.filter(s => s.id !== id);
+                    updateClassStudents(currentClassId, updatedStudents);
+                }
+            };
+
+            const handleCSVImport = (event) => {
+                const file = event.target.files[0];
+                if (!file || !currentClassId) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+                    
+                    const startsWithHeader = lines[0] && 
+                        (lines[0].toLowerCase().includes('name') || 
+                         lines[0].toLowerCase().includes('student') ||
+                         lines[0].toLowerCase().includes('first'));
+                    
+                    const namesToImport = startsWithHeader ? lines.slice(1) : lines;
+                    
+                    const newStudents = namesToImport.map((line) => {
+                        const columns = line.split(',').map(col => col.trim().replace(/^["']|["']$/g, ''));
+                        let name = '';
+                        
+                        if (columns.length >= 2 && columns[0] && columns[1]) {
+                            // Two columns: assume "Last, First" format - reverse it
+                            name = `${columns[1]} ${columns[0]}`;
+                        } else if (columns.length >= 1 && columns[0]) {
+                            // One column: use as-is
+                            name = columns[0];
+                        }
+                        
+                        return {
+                            id: Date.now() + Math.random(),
+                            name: name.trim()
+                        };
+                    }).filter(student => student.name);
+
+                    if (newStudents.length > 0) {
+                        const updatedStudents = [...students, ...newStudents];
+                        updateClassStudents(currentClassId, updatedStudents);
+                        setShowImportModal(false);
+                        alert(`Successfully imported ${newStudents.length} students!`);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            };
+
+            const getRecordKey = (date, studentId) => `${date}-${studentId}`;
+
+            const getCurrentRecord = (studentId) => {
+                const key = getRecordKey(selectedDate, studentId);
+                return records[key] || { trips: [] };
+            };
+
+            const startTrip = (studentId) => {
+                const key = getRecordKey(selectedDate, studentId);
+                const record = getCurrentRecord(studentId);
+                const newTrip = {
+                    id: Date.now(),
+                    timeOut: new Date().toISOString(),
+                    timeIn: null
+                };
+                
+                setRecords({
+                    ...records,
+                    [key]: {
+                        ...record,
+                        trips: [...record.trips, newTrip]
+                    }
+                });
+            };
+
+            const endTrip = (studentId, tripId) => {
+                const key = getRecordKey(selectedDate, studentId);
+                const record = getCurrentRecord(studentId);
+                
+                setRecords({
+                    ...records,
+                    [key]: {
+                        ...record,
+                        trips: record.trips.map(trip =>
+                            trip.id === tripId
+                                ? { ...trip, timeIn: new Date().toISOString() }
+                                : trip
+                        )
+                    }
+                });
+            };
+
+            const deleteTrip = (studentId, tripId) => {
+                if (confirm('Delete this bathroom trip?')) {
+                    const key = getRecordKey(selectedDate, studentId);
+                    const record = getCurrentRecord(studentId);
+                    
+                    setRecords({
+                        ...records,
+                        [key]: {
+                            ...record,
+                            trips: record.trips.filter(trip => trip.id !== tripId)
+                        }
+                    });
+                }
+            };
+
+            const openEditTrip = (studentId, trip) => {
+                setEditingTrip({ studentId, trip });
+                
+                // Format times for datetime-local input
+                const timeOut = new Date(trip.timeOut);
+                const timeOutStr = timeOut.toISOString().slice(0, 16);
+                setEditTimeOut(timeOutStr);
+                
+                if (trip.timeIn) {
+                    const timeIn = new Date(trip.timeIn);
+                    const timeInStr = timeIn.toISOString().slice(0, 16);
+                    setEditTimeIn(timeInStr);
+                } else {
+                    setEditTimeIn('');
+                }
+                
+                setShowEditModal(true);
+            };
+
+            const saveEditedTrip = () => {
+                if (!editingTrip || !editTimeOut) return;
+                
+                const key = getRecordKey(selectedDate, editingTrip.studentId);
+                const record = getCurrentRecord(editingTrip.studentId);
+                
+                const newTimeOut = new Date(editTimeOut).toISOString();
+                const newTimeIn = editTimeIn ? new Date(editTimeIn).toISOString() : null;
+                
+                setRecords({
+                    ...records,
+                    [key]: {
+                        ...record,
+                        trips: record.trips.map(trip =>
+                            trip.id === editingTrip.trip.id
+                                ? { ...trip, timeOut: newTimeOut, timeIn: newTimeIn }
+                                : trip
+                        )
+                    }
+                });
+                
+                setShowEditModal(false);
+                setEditingTrip(null);
+            };
+
+            const calculateDuration = (timeOut, timeIn) => {
+                if (!timeIn) return null;
+                const diff = new Date(timeIn) - new Date(timeOut);
+                return Math.round(diff / 60000);
+            };
+
+            const getTodayStats = (studentId) => {
+                const record = getCurrentRecord(studentId);
+                const totalTrips = record.trips.length;
+                const completedTrips = record.trips.filter(t => t.timeIn);
+                const totalMinutes = completedTrips.reduce((sum, trip) => {
+                    return sum + calculateDuration(trip.timeOut, trip.timeIn);
+                }, 0);
+                const activeTrip = record.trips.find(t => !t.timeIn);
+                
+                return { totalTrips, totalMinutes, activeTrip };
+            };
+
+            const getPeriodStats = (studentId, days) => {
+                const today = new Date(selectedDate);
+                const startDate = new Date(today);
+                startDate.setDate(startDate.getDate() - (days - 1));
+                
+                let totalTrips = 0;
+                let totalMinutes = 0;
+                
+                for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+                    const dateStr = d.toISOString().split('T')[0];
+                    const key = getRecordKey(dateStr, studentId);
+                    const record = records[key];
+                    
+                    if (record) {
+                        totalTrips += record.trips.length;
+                        record.trips.forEach(trip => {
+                            if (trip.timeIn) {
+                                totalMinutes += calculateDuration(trip.timeOut, trip.timeIn);
+                            }
+                        });
+                    }
+                }
+                
+                return { totalTrips, totalMinutes };
+            };
+
+            const formatTime = (isoString) => {
+                return new Date(isoString).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                                        <Clock />
+                                        Bathroom Break Tracker
+                                        {isConnected && (
+                                            <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full flex items-center gap-2">
+                                                <Cloud size={16} />
+                                                Cloud Sync
+                                            </span>
+                                        )}
+                                    </h1>
+                                    <p className="text-gray-600 mt-1">
+                                        Monitor and manage student hall passes
+                                        {lastSync && <span className="text-xs ml-2">Last sync: {lastSync}</span>}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setStatsRange(7)}
+                                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                                statsRange === 7
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                                            }`}
+                                        >
+                                            7 Days
+                                        </button>
+                                        <button
+                                            onClick={() => setStatsRange(14)}
+                                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                                statsRange === 14
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                                            }`}
+                                        >
+                                            14 Days
+                                        </button>
+                                        <button
+                                            onClick={() => setStatsRange(30)}
+                                            className={`px-4 py-2 rounded-lg transition-colors ${
+                                                statsRange === 30
+                                                    ? 'bg-indigo-600 text-white'
+                                                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                                            }`}
+                                        >
+                                            30 Days
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowSetupModal(true)}
+                                        className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm ${
+                                            isConnected
+                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                                        }`}
+                                    >
+                                        <Settings size={16} />
+                                        {isConnected ? 'Connected to Sheets' : 'Setup Google Sheets'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-b py-4 mb-6">
+                                <h2 className="text-lg font-semibold text-gray-800 mb-3">Classes</h2>
+                                
+                                <div className="flex gap-2 mb-3">
+                                    <input
+                                        type="text"
+                                        placeholder="New class name (e.g., Period 1 English)"
+                                        value={newClassName}
+                                        onChange={(e) => setNewClassName(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && addClass()}
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <button
+                                        onClick={addClass}
+                                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                    >
+                                        <Plus />
+                                        Add Class
+                                    </button>
+                                </div>
+
+                                {classes.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {classes.map(cls => (
+                                            <div
+                                                key={cls.id}
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all cursor-pointer ${
+                                                    currentClassId === cls.id
+                                                        ? 'border-indigo-600 bg-indigo-50'
+                                                        : 'border-gray-200 hover:border-indigo-300'
+                                                }`}
+                                            >
+                                                <button
+                                                    onClick={() => setCurrentClassId(cls.id)}
+                                                    className="flex-1"
+                                                >
+                                                    <span className="font-medium">{cls.name}</span>
+                                                    <span className="text-sm text-gray-500 ml-2">({cls.students?.length || 0} students)</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteClass(cls.id)}
+                                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500 text-sm">No classes yet. Add your first class above!</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-4 mb-6">
+                                <Calendar />
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            {currentClassId ? (
+                                <div className="border-t pt-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                                            <Users size={24} />
+                                            Class List
+                                        </h2>
+                                        <button
+                                            onClick={() => setShowImportModal(true)}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                                        >
+                                            <Plus />
+                                            Import CSV
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="flex gap-2 mb-4">
+                                        <input
+                                            type="text"
+                                            placeholder="Student name"
+                                            value={newStudentName}
+                                            onChange={(e) => setNewStudentName(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && addStudent()}
+                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        />
+                                        <button
+                                            onClick={addStudent}
+                                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                                        >
+                                            <Plus />
+                                            Add Student
+                                        </button>
+                                    </div>
+
+                                    {students.length === 0 ? (
+                                        <div className="text-center py-12 text-gray-500">
+                                            <Users size={48} />
+                                            <p>No students in this class yet.</p>
+                                            <p className="text-sm mt-2">Add students manually or import a CSV file.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {students.map(student => {
+                                                const stats = getTodayStats(student.id);
+                                                const periodStats = getPeriodStats(student.id, statsRange);
+                                                
+                                                return (
+                                                    <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <div className="flex-1">
+                                                                <h3 className="text-lg font-semibold text-gray-800">{student.name}</h3>
+                                                                <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                                                                    <span>Today: {stats.totalTrips} trips • {stats.totalMinutes} min</span>
+                                                                    <span className="text-indigo-600">
+                                                                        Last {statsRange} days: {periodStats.totalTrips} trips • {periodStats.totalMinutes} min
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="flex items-center gap-2">
+                                                                {stats.activeTrip ? (
+                                                                    <button
+                                                                        onClick={() => endTrip(student.id, stats.activeTrip.id)}
+                                                                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+                                                                    >
+                                                                        <Square />
+                                                                        Time In
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => startTrip(student.id)}
+                                                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                                                                    >
+                                                                        <Play />
+                                                                        Time Out
+                                                                    </button>
+                                                                )}
+                                                                
+                                                                <button
+                                                                    onClick={() => removeStudent(student.id)}
+                                                                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                                >
+                                                                    <X />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {stats.activeTrip && (
+                                                            <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+                                                                <p className="text-sm text-yellow-800 font-medium">
+                                                                    ⏱️ Currently out since {formatTime(stats.activeTrip.timeOut)}
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {getCurrentRecord(student.id).trips.length > 0 && (
+                                                            <div className="mt-3 space-y-2">
+                                                                <p className="text-sm font-medium text-gray-700">Today's trips:</p>
+                                                                {getCurrentRecord(student.id).trips.map(trip => (
+                                                                    <div key={trip.id} className="text-sm bg-gray-50 rounded p-2 flex justify-between items-center">
+                                                                        <span className="text-gray-600">
+                                                                            Out: {formatTime(trip.timeOut)}
+                                                                            {trip.timeIn && ` → In: ${formatTime(trip.timeIn)}`}
+                                                                        </span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {trip.timeIn && (
+                                                                                <span className="font-semibold text-indigo-600">
+                                                                                    {calculateDuration(trip.timeOut, trip.timeIn)} min
+                                                                                </span>
+                                                                            )}
+                                                                            <button
+                                                                                onClick={() => openEditTrip(student.id, trip)}
+                                                                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                                                title="Edit times"
+                                                                            >
+                                                                                <Edit />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => deleteTrip(student.id, trip.id)}
+                                                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                                                title="Delete trip"
+                                                                            >
+                                                                                <Trash />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="border-t pt-6 text-center py-12 text-gray-500">
+                                    <Users size={48} />
+                                    <p>Please select or create a class to get started.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Setup Modal */}
+                        {showSetupModal && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-xl font-semibold text-gray-800">Google Sheets Setup</h3>
+                                        <button
+                                            onClick={() => setShowSetupModal(false)}
+                                            className="text-gray-400 hover:text-gray-600"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    </div>
+                                    
+                                    {!isConnected ? (
+                                        <div>
+                                            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+                                                <h4 className="font-semibold text-blue-900 mb-2">Setup Instructions:</h4>
+                                                <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                                                    <li>Open a new Google Sheet</li>
+                                                    <li>Go to <strong>Extensions → Apps Script</strong></li>
+                                                    <li>Delete any existing code</li>
+                                                    <li>Copy and paste the script provided below</li>
+                                                    <li>Click <strong>Deploy → New deployment</strong></li>
+                                                    <li>Choose type: <strong>Web app</strong></li>
+                                                    <li>Set "Who has access" to <strong>Anyone</strong></li>
+                                                    <li>Click <strong>Deploy</strong> and copy the Web app URL</li>
+                                                    <li>Paste the URL below</li>
+                                                </ol>
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Apps Script Code (copy this):
+                                                </label>
+                                                <textarea
+                                                    readOnly
+                                                    value={`function doGet() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data') || 
+                SpreadsheetApp.getActiveSpreadsheet().insertSheet('Data');
+  const data = sheet.getRange(1, 1).getValue();
+  return ContentService.createTextOutput(data || '{"classes":[],"records":{}}')
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Data') || 
+                SpreadsheetApp.getActiveSpreadsheet().insertSheet('Data');
+  sheet.getRange(1, 1).setValue(e.postData.contents);
+  return ContentService.createTextOutput('Success');
+}`}
+                                                    className="w-full h-48 p-3 border border-gray-300 rounded font-mono text-xs"
+                                                    onClick={(e) => e.target.select()}
+                                                />
+                                            </div>
+
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    Google Apps Script Web App URL:
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={scriptUrl}
+                                                    onChange={(e) => setScriptUrl(e.target.value)}
+                                                    placeholder="https://script.google.com/macros/s/..."
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                />
+                                            </div>
+
+                                            <button
+                                                onClick={connectToSheets}
+                                                disabled={!scriptUrl.trim()}
+                                                className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                            >
+                                                Connect to Google Sheets
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <div className="bg-green-50 border border-green-200 rounded p-4 mb-4">
+                                                <p className="text-green-800">
+                                                    ✓ Connected to Google Sheets! Your data is syncing automatically across all devices.
+                                                </p>
+                                            </div>
+                                            <div className="mb-4">
+                                                <p className="text-sm text-gray-600 mb-2">Connected URL:</p>
+                                                <p className="text-xs bg-gray-50 p-2 rounded break-all">{scriptUrl}</p>
+                                            </div>
+                                            <button
+                                                onClick={disconnectFromSheets}
+                                                className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                            >
+                                                Disconnect from Sheets
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* CSV Import Modal */}
+                        {showImportModal && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-xl font-semibold text-gray-800">Import Students from CSV</h3>
+                                        <button
+                                            onClick={() => setShowImportModal(false)}
+                                            className="text-gray-400 hover:text-gray-600"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="mb-4">
+                                        <p className="text-gray-600 mb-3">Upload a CSV file with student names.</p>
+                                        <div className="bg-gray-50 p-3 rounded text-sm mb-3">
+                                            <p className="font-semibold mb-1">Supported formats:</p>
+                                            <div className="font-mono text-xs">
+                                                <p>Smith, John → imports as "John Smith"</p>
+                                                <p>Jane Doe → imports as "Jane Doe"</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-gray-500">
+                                            • Two columns (Last, First) will be reversed automatically<br/>
+                                            • Single column names will be used as-is<br/>
+                                            • Headers are detected and skipped automatically
+                                        </p>
+                                    </div>
+
+                                    <label className="block">
+                                        <div className="px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer text-center">
+                                            Choose CSV File
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept=".csv"
+                                            onChange={handleCSVImport}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Edit Trip Modal */}
+                        {showEditModal && editingTrip && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-xl font-semibold text-gray-800">Edit Trip Times</h3>
+                                        <button
+                                            onClick={() => {
+                                                setShowEditModal(false);
+                                                setEditingTrip(null);
+                                            }}
+                                            className="text-gray-400 hover:text-gray-600"
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Time Out
+                                            </label>
+                                            <input
+                                                type="datetime-local"
+                                                value={editTimeOut}
+                                                onChange={(e) => setEditTimeOut(e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Time In (leave empty if still out)
+                                            </label>
+                                            <input
+                                                type="datetime-local"
+                                                value={editTimeIn}
+                                                onChange={(e) => setEditTimeIn(e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                        </div>
+
+                                        <button
+                                            onClick={saveEditedTrip}
+                                            className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                                        >
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-xl shadow-lg p-6">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-3">How Cloud Sync Works</h3>
+                            <ul className="space-y-2 text-gray-600">
+                                <li>• <strong>One-time setup:</strong> Connect to Google Sheets using the setup button</li>
+                                <li>• <strong>Automatic sync:</strong> All changes save to Google Sheets instantly</li>
+                                <li>• <strong>Access anywhere:</strong> Open the app on any device - your data is there</li>
+                                <li>• <strong>Always backed up:</strong> Your data is stored safely in your Google Sheet</li>
+                                <li>• <strong>CSV import:</strong> Import entire class rosters easily</li>
+                                <li>• <strong>Multi-device:</strong> Use on iPad, computer, phone - all stay in sync</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<BathroomTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
