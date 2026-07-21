@@ -1,0 +1,332 @@
+/* ==========================================================================
+   Mr. [Teacher] Math — shared styles
+   Design concept: a teacher's chalkboard as graph paper. Deep board-green
+   background, chalk-toned type, a plotted curve as the recurring signature.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --board:        #16262A;
+  --board-light:  #1F363B;
+  --board-lighter:#28444B;
+  --chalk:        #F4F1E8;
+  --chalk-dim:    #C9D4D2;
+  --chalk-yellow: #E8C468;
+  --chalk-blue:   #8FB8C4;
+  --chalk-coral:  #D98878;
+  --grid-line:    rgba(244,241,232,0.07);
+  --grid-line-strong: rgba(244,241,232,0.14);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius: 3px;
+  --max-width: 1120px;
+}
+
+*{ box-sizing: border-box; }
+
+html{ scroll-behavior: smooth; }
+
+body{
+  margin: 0;
+  background: var(--board);
+  color: var(--chalk);
+  font-family: var(--font-body);
+  line-height: 1.55;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation: none !important; transition: none !important; }
+  html{ scroll-behavior: auto; }
+}
+
+a{ color: var(--chalk-yellow); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+a:focus-visible, button:focus-visible{
+  outline: 2px solid var(--chalk-blue);
+  outline-offset: 3px;
+}
+
+.wrap{
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- Top nav ---------- */
+.site-nav{
+  border-bottom: 1px solid var(--grid-line-strong);
+  background: rgba(22,38,42,0.85);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.site-nav .wrap{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.brand{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--chalk);
+  letter-spacing: 0.01em;
+}
+.brand small{
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--chalk-blue);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.nav-links{
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.nav-links a{
+  color: var(--chalk-dim);
+}
+.nav-links a.current, .nav-links a:hover{
+  color: var(--chalk-yellow);
+}
+
+/* ---------- Hero ---------- */
+.hero{
+  padding: 72px 0 56px;
+  position: relative;
+  overflow: hidden;
+}
+.hero .wrap{
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+}
+@media (max-width: 800px){
+  .hero .wrap{ grid-template-columns: 1fr; }
+}
+.eyebrow{
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-coral);
+  margin: 0 0 14px;
+}
+h1{
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  line-height: 1.08;
+  margin: 0 0 20px;
+  color: var(--chalk);
+}
+.lede{
+  font-size: 1.08rem;
+  color: var(--chalk-dim);
+  max-width: 46ch;
+  margin: 0 0 28px;
+}
+.hero-actions{ display: flex; gap: 14px; flex-wrap: wrap; }
+
+.btn{
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  border: 1px solid var(--chalk-blue);
+  color: var(--chalk);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.btn:hover{ background: var(--chalk-blue); color: var(--board); text-decoration: none; }
+.btn.primary{
+  background: var(--chalk-yellow);
+  border-color: var(--chalk-yellow);
+  color: var(--board);
+  font-weight: 500;
+}
+.btn.primary:hover{ background: transparent; color: var(--chalk-yellow); }
+
+/* Signature SVG plot */
+.plot-frame{
+  border: 1px solid var(--grid-line-strong);
+  background: rgba(0,0,0,0.15);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.plot-frame svg{ display: block; width: 100%; height: auto; }
+.plot-caption{
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--chalk-blue);
+  text-align: right;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Section headings ---------- */
+section{ padding: 48px 0; }
+.section-head{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--grid-line-strong);
+  padding-bottom: 14px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.section-head h2{
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.6rem;
+  margin: 0;
+  color: var(--chalk);
+}
+.section-head .tag{
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--chalk-coral);
+}
+
+/* ---------- Class cards ---------- */
+.card-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+.card{
+  border: 1px solid var(--grid-line-strong);
+  background: var(--board-light);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-blue); }
+.card .card-eyebrow{
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--chalk-blue);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.card h3{
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0;
+  color: var(--chalk);
+}
+.card p{ color: var(--chalk-dim); margin: 0; font-size: 0.95rem; }
+.card a.card-link{
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* ---------- Link lists (tools / blog / resources) ---------- */
+.link-list{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.link-list li{
+  border: 1px solid var(--grid-line-strong);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  background: var(--board-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.link-list .item-title{
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--chalk);
+  display: block;
+}
+.link-list .item-desc{
+  color: var(--chalk-dim);
+  font-size: 0.9rem;
+  display: block;
+  margin-top: 2px;
+}
+.link-list .item-meta{
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--chalk-blue);
+}
+.link-list a.go{
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  border: 1px solid var(--chalk-yellow);
+  color: var(--chalk-yellow);
+  padding: 7px 14px;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+.link-list a.go:hover{ background: var(--chalk-yellow); color: var(--board); text-decoration: none; }
+
+/* ---------- Gated box ---------- */
+.gate-box{
+  border: 1px dashed var(--chalk-coral);
+  border-radius: var(--radius);
+  padding: 22px;
+  background: rgba(217,136,120,0.06);
+}
+.gate-box .tag{ color: var(--chalk-coral); }
+.gate-form{ display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.gate-form input[type="password"]{
+  font-family: var(--font-mono);
+  background: var(--board);
+  border: 1px solid var(--grid-line-strong);
+  color: var(--chalk);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  flex: 1;
+  min-width: 160px;
+}
+.gate-error{ color: var(--chalk-coral); font-family: var(--font-mono); font-size: 0.82rem; margin-top: 8px; display: none; }
+
+/* ---------- Footer ---------- */
+footer{
+  border-top: 1px solid var(--grid-line-strong);
+  padding: 32px 0 48px;
+  margin-top: 24px;
+}
+footer .wrap{
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--chalk-blue);
+}
+
+.small-note{
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--chalk-dim);
+  opacity: 0.85;
+}
