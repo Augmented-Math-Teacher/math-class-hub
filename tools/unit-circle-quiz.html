@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit Circle Trig Quiz</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:          #ffffff;
+    --bg-2:        #f5f4f1;
+    --bg-3:        #eceae5;
+    --text-1:      #1a1a1a;
+    --text-2:      #555550;
+    --text-3:      #99998a;
+    --border-1:    rgba(0,0,0,0.10);
+    --border-2:    rgba(0,0,0,0.22);
+    --blue-bg:     #e6f0fc;
+    --blue-text:   #1a55a0;
+    --blue-bdr:    #a0c0f0;
+    --orange-bg:   #fef2e0;
+    --orange-text: #8a5000;
+    --orange-bdr:  #f0c060;
+    --green-bg:    #e6f5ec;
+    --green-text:  #1a6030;
+    --green-bdr:   #80cc99;
+    --red-bg:      #fde8e8;
+    --red-text:    #991a1a;
+    --red-bdr:     #f0a0a0;
+    --purple-bg:   #f0ecfe;
+    --purple-text: #4a20a0;
+    --purple-bdr:  #b8a0f0;
+    --teal-bg:     #e0f6f4;
+    --teal-text:   #0d6060;
+    --teal-bdr:    #70c8c0;
+    --shadow:      0 1px 3px rgba(0,0,0,0.07), 0 4px 14px rgba(0,0,0,0.05);
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:          #1c1c1e;
+      --bg-2:        #2c2c2e;
+      --bg-3:        #3a3a3c;
+      --text-1:      #f2f2f7;
+      --text-2:      #aeaeb2;
+      --text-3:      #6e6e73;
+      --border-1:    rgba(255,255,255,0.10);
+      --border-2:    rgba(255,255,255,0.22);
+      --blue-bg:     #152840;
+      --blue-text:   #70b0f0;
+      --blue-bdr:    #2a4a70;
+      --orange-bg:   #302000;
+      --orange-text: #f0b040;
+      --orange-bdr:  #604000;
+      --green-bg:    #0c2618;
+      --green-text:  #50c070;
+      --green-bdr:   #185030;
+      --red-bg:      #260c0c;
+      --red-text:    #f07070;
+      --red-bdr:     #501818;
+      --purple-bg:   #1e1040;
+      --purple-text: #a888f8;
+      --purple-bdr:  #402090;
+      --teal-bg:     #062020;
+      --teal-text:   #40c0b8;
+      --teal-bdr:    #106060;
+      --shadow:      0 1px 3px rgba(0,0,0,0.25), 0 4px 14px rgba(0,0,0,0.20);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg-2);
+    color: var(--text-1);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .app { width: 100%; max-width: 800px; }
+
+  .page-title {
+    font-size: 20px; font-weight: 600;
+    color: var(--text-1); margin-bottom: 1.25rem; letter-spacing: -0.3px;
+  }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1rem; }
+  .stat {
+    background: var(--bg); border: 0.5px solid var(--border-1);
+    border-radius: var(--r-md); padding: 0.65rem 0.5rem;
+    text-align: center; box-shadow: var(--shadow);
+  }
+  .stat-val { font-size: 22px; font-weight: 600; color: var(--text-1); line-height: 1; }
+  .stat-lbl { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+
+  /* Toolbar */
+  .toolbar {
+    background: var(--bg); border: 0.5px solid var(--border-1);
+    border-radius: var(--r-lg); padding: 0.7rem 1rem;
+    margin-bottom: 1rem; display: flex; flex-wrap: wrap;
+    gap: 8px 12px; align-items: center; box-shadow: var(--shadow);
+  }
+  .t-sec { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .t-lbl { font-size: 11px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
+  .t-div { width: 0.5px; height: 24px; background: var(--border-1); flex-shrink: 0; }
+
+  .pill {
+    font-size: 12px; font-weight: 500; padding: 4px 11px;
+    border-radius: 999px; border: 0.5px solid var(--border-1);
+    background: var(--bg-2); color: var(--text-3);
+    cursor: pointer; user-select: none; transition: all 0.13s;
+  }
+  .pill:hover { background: var(--bg-3); color: var(--text-2); }
+  .pill.on.basic  { background: var(--blue-bg);   border-color: var(--blue-bdr);   color: var(--blue-text);   }
+  .pill.on.recip  { background: var(--orange-bg);  border-color: var(--orange-bdr); color: var(--orange-text); }
+  .pill.on.mode   { background: var(--purple-bg);  border-color: var(--purple-bdr); color: var(--purple-text); }
+  .pill.on.teal   { background: var(--teal-bg);    border-color: var(--teal-bdr);   color: var(--teal-text);   }
+
+  .tbtn {
+    font-size: 12px; padding: 4px 12px; border-radius: var(--r-sm);
+    border: 0.5px solid var(--border-1); background: var(--bg-2);
+    color: var(--text-2); cursor: pointer; font-family: inherit; transition: background 0.12s;
+  }
+  .tbtn:hover { background: var(--bg-3); }
+  .tbtn.danger { border-color: var(--red-bdr); color: var(--red-text); }
+  .tbtn.danger:hover { background: var(--red-bg); }
+
+  /* Layout */
+  .main { display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap; }
+  .circle-panel { flex-shrink: 0; }
+  svg.uc { display: block; }
+
+  /* Question card */
+  .q-panel { flex: 1; min-width: 270px; }
+  .q-card {
+    background: var(--bg); border: 0.5px solid var(--border-1);
+    border-radius: var(--r-xl); padding: 1.5rem;
+    box-shadow: var(--shadow); transition: background 0.25s;
+  }
+
+  .fn-badge {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 9px; border-radius: 999px;
+    margin-bottom: 0.5rem; letter-spacing: 0.2px;
+  }
+  .fn-badge.basic { background: var(--blue-bg);  color: var(--blue-text);   }
+  .fn-badge.recip { background: var(--orange-bg); color: var(--orange-text); }
+
+  .q-text {
+    font-size: 26px; font-weight: 600; color: var(--text-1);
+    letter-spacing: -0.5px; margin-bottom: 1.25rem; line-height: 1.3;
+  }
+  .q-angle-alt {
+    display: block; font-size: 14px; font-weight: 400;
+    color: var(--text-3); margin-top: 4px;
+  }
+
+  .ans-cover {
+    background: var(--bg-2); border: 1.5px dashed var(--border-1);
+    border-radius: var(--r-md); padding: 1rem; text-align: center;
+    cursor: pointer; font-size: 13px; color: var(--text-3);
+    user-select: none; transition: all 0.12s;
+  }
+  .ans-cover:hover { background: var(--bg-3); color: var(--text-2); border-color: var(--border-2); }
+
+  .ans-reveal {
+    display: none; background: var(--green-bg);
+    border: 0.5px solid var(--green-bdr);
+    border-radius: var(--r-md); padding: 1.1rem; text-align: center;
+  }
+  .ans-val  { font-size: 34px; font-weight: 600; color: var(--green-text); line-height: 1; }
+  .ans-note { font-size: 12px; color: var(--text-3); margin-top: 6px; line-height: 1.7; }
+
+  .grade-row { display: none; gap: 8px; margin-top: 0.75rem; }
+  .grade-btn {
+    flex: 1; padding: 8px 0; font-size: 13px; font-weight: 500;
+    font-family: inherit; border-radius: var(--r-md); cursor: pointer;
+    border: 0.5px solid; transition: opacity 0.12s;
+  }
+  .grade-btn:hover { opacity: 0.8; }
+  .grade-btn.yes { background: var(--green-bg); border-color: var(--green-bdr); color: var(--green-text); }
+  .grade-btn.no  { background: var(--red-bg);   border-color: var(--red-bdr);   color: var(--red-text);   }
+
+  .next-btn {
+    width: 100%; margin-top: 0.75rem; padding: 10px 0;
+    font-size: 14px; font-family: inherit; font-weight: 500;
+    background: var(--blue-bg); border: 0.5px solid var(--blue-bdr);
+    color: var(--blue-text); border-radius: var(--r-md); cursor: pointer;
+    transition: opacity 0.12s;
+  }
+  .next-btn:hover { opacity: 0.8; }
+
+  @keyframes flash-g { 0%,100%{ background: var(--bg); } 40%{ background: var(--green-bg); } }
+  @keyframes flash-r { 0%,100%{ background: var(--bg); } 40%{ background: var(--red-bg);   } }
+  .flash-g { animation: flash-g 0.5s ease; }
+  .flash-r { animation: flash-r 0.5s ease; }
+
+  @media (max-width: 520px) {
+    .stats { grid-template-columns: repeat(2,1fr); }
+    .q-text { font-size: 22px; }
+    .ans-val { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="page-title">Unit Circle Trig Quiz</div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="s-cor">0</div><div class="stat-lbl">correct</div></div>
+    <div class="stat"><div class="stat-val" id="s-tot">0</div><div class="stat-lbl">asked</div></div>
+    <div class="stat"><div class="stat-val" id="s-str">0</div><div class="stat-lbl">streak</div></div>
+    <div class="stat"><div class="stat-val" id="s-pct">&#8212;</div><div class="stat-lbl">accuracy</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="t-sec">
+      <span class="t-lbl">Basic:</span>
+      <span class="pill on basic" data-fn="sin" onclick="toggleFn(this)">sin</span>
+      <span class="pill on basic" data-fn="cos" onclick="toggleFn(this)">cos</span>
+      <span class="pill on basic" data-fn="tan" onclick="toggleFn(this)">tan</span>
+    </div>
+    <div class="t-div"></div>
+    <div class="t-sec">
+      <span class="t-lbl">Reciprocal:</span>
+      <span class="pill recip" data-fn="csc" onclick="toggleFn(this)">csc</span>
+      <span class="pill recip" data-fn="sec" onclick="toggleFn(this)">sec</span>
+      <span class="pill recip" data-fn="cot" onclick="toggleFn(this)">cot</span>
+    </div>
+    <div class="t-div"></div>
+    <div class="t-sec">
+      <span class="t-lbl">Angle as:</span>
+      <span class="pill on mode" id="md-deg"  onclick="setMode('deg')">Degrees</span>
+      <span class="pill    mode" id="md-rad"  onclick="setMode('rad')">Radians</span>
+      <span class="pill    mode" id="md-both" onclick="setMode('both')">Both</span>
+    </div>
+    <div class="t-div"></div>
+    <div class="t-sec">
+      <span class="t-lbl">Circle shows:</span>
+      <span class="pill on teal" id="show-circ"   onclick="toggleCircle()">Circle</span>
+      <span class="pill on teal" id="show-coords" onclick="toggleCoords()">Coordinates</span>
+    </div>
+    <div class="t-div"></div>
+    <div class="t-sec" style="margin-left:auto; gap:6px;">
+      <button class="tbtn danger" onclick="resetStats()">Reset</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="circle-panel" id="circ-panel">
+      <svg class="uc" width="300" height="300" viewBox="-152 -152 304 304">
+        <circle cx="0" cy="0" r="115" fill="none" stroke="var(--border-1)" stroke-width="1"/>
+        <line x1="-138" y1="0" x2="138" y2="0" stroke="var(--border-1)" stroke-width="0.5"/>
+        <line x1="0" y1="-138" x2="0" y2="138" stroke="var(--border-1)" stroke-width="0.5"/>
+        <text x="140"  y="4"    font-size="9" fill="var(--text-3)" text-anchor="start" dominant-baseline="middle">1</text>
+        <text x="-140" y="4"    font-size="9" fill="var(--text-3)" text-anchor="end"   dominant-baseline="middle">-1</text>
+        <text x="3"    y="-140" font-size="9" fill="var(--text-3)" text-anchor="start" dominant-baseline="middle">1</text>
+        <text x="3"    y="140"  font-size="9" fill="var(--text-3)" text-anchor="start" dominant-baseline="middle">-1</text>
+        <g id="uc-spokes"></g>
+        <g id="uc-coords"></g>
+        <g id="uc-hi"></g>
+      </svg>
+    </div>
+
+    <div class="q-panel">
+      <div class="q-card" id="q-card">
+        <span class="fn-badge basic" id="fn-badge">sin</span>
+        <div class="q-text" id="q-text">&#8212;</div>
+
+        <div class="ans-cover" id="ans-cover" onclick="revealAnswer()">
+          Click to reveal answer
+        </div>
+        <div class="ans-reveal" id="ans-reveal">
+          <div class="ans-val"  id="ans-val">&#8212;</div>
+          <div class="ans-note" id="ans-note"></div>
+        </div>
+
+        <div class="grade-row" id="grade-row">
+          <button class="grade-btn yes" onclick="grade(true)">&#10003;&nbsp; Got it</button>
+          <button class="grade-btn no"  onclick="grade(false)">&#10007;&nbsp; Missed it</button>
+        </div>
+
+        <button class="next-btn" onclick="nextQ()">Next question &#8594;</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var ANGLES = [
+  { deg:0,   rad:'0',         x:1,                y:0                },
+  { deg:30,  rad:'\u03c0/6',  x:Math.sqrt(3)/2,   y:0.5              },
+  { deg:45,  rad:'\u03c0/4',  x:Math.sqrt(2)/2,   y:Math.sqrt(2)/2   },
+  { deg:60,  rad:'\u03c0/3',  x:0.5,              y:Math.sqrt(3)/2   },
+  { deg:90,  rad:'\u03c0/2',  x:0,                y:1                },
+  { deg:120, rad:'2\u03c0/3', x:-0.5,             y:Math.sqrt(3)/2   },
+  { deg:135, rad:'3\u03c0/4', x:-Math.sqrt(2)/2,  y:Math.sqrt(2)/2   },
+  { deg:150, rad:'5\u03c0/6', x:-Math.sqrt(3)/2,  y:0.5              },
+  { deg:180, rad:'\u03c0',    x:-1,               y:0                },
+  { deg:210, rad:'7\u03c0/6', x:-Math.sqrt(3)/2,  y:-0.5             },
+  { deg:225, rad:'5\u03c0/4', x:-Math.sqrt(2)/2,  y:-Math.sqrt(2)/2  },
+  { deg:240, rad:'4\u03c0/3', x:-0.5,             y:-Math.sqrt(3)/2  },
+  { deg:270, rad:'3\u03c0/2', x:0,                y:-1               },
+  { deg:300, rad:'5\u03c0/3', x:0.5,              y:-Math.sqrt(3)/2  },
+  { deg:315, rad:'7\u03c0/4', x:Math.sqrt(2)/2,   y:-Math.sqrt(2)/2  },
+  { deg:330, rad:'11\u03c0/6',x:Math.sqrt(3)/2,   y:-0.5             },
+];
+
+var FMT = {
+  '1.000':'1',           '-1.000':'-1',         '0.000':'0',
+  '0.500':'1/2',         '-0.500':'-1/2',
+  '0.866':'\u221a3/2',   '-0.866':'-\u221a3/2',
+  '0.707':'\u221a2/2',   '-0.707':'-\u221a2/2',
+  '0.577':'\u221a3/3',   '-0.577':'-\u221a3/3',
+  '1.732':'\u221a3',     '-1.732':'-\u221a3',
+  '2.000':'2',           '-2.000':'-2',
+  '1.414':'\u221a2',     '-1.414':'-\u221a2',
+};
+
+function fmt(n) {
+  if (!isFinite(n)) return 'undefined';
+  var k = n.toFixed(3);
+  return FMT[k] || n.toFixed(3);
+}
+
+function getVal(fn, a) {
+  var x = a.x, y = a.y;
+  if (fn==='sin') return y;
+  if (fn==='cos') return x;
+  if (fn==='tan') return Math.abs(x)<1e-10 ? Infinity : y/x;
+  if (fn==='csc') return Math.abs(y)<1e-10 ? Infinity : 1/y;
+  if (fn==='sec') return Math.abs(x)<1e-10 ? Infinity : 1/x;
+  if (fn==='cot') return Math.abs(y)<1e-10 ? Infinity : x/y;
+}
+
+var RECIP = {csc:1, sec:1, cot:1};
+var activeFns   = {sin:1, cos:1, tan:1};
+var angleMode   = 'deg';
+var circleVisible = true;
+var coordsVisible = true;
+var correct=0, total=0, streak=0;
+var curFn='', curAngle=null, curVal=null, revealed=false;
+
+// ── Controls ──────────────────────────────────────────────────────────
+function toggleFn(el) {
+  var fn = el.dataset.fn;
+  var keys = Object.keys(activeFns);
+  if (activeFns[fn]) {
+    if (keys.length===1) return;
+    delete activeFns[fn];
+    el.classList.remove('on');
+  } else {
+    activeFns[fn]=1;
+    el.classList.add('on');
+  }
+}
+
+function setMode(m) {
+  angleMode = m;
+  ['deg','rad','both'].forEach(function(id){
+    document.getElementById('md-'+id).classList.toggle('on', id===m);
+  });
+  rebuildSpokes(); // re-label circle to match mode
+  if (curAngle) { renderQuestion(); highlightAngle(curAngle); }
+}
+
+function toggleCircle() {
+  circleVisible = !circleVisible;
+  document.getElementById('circ-panel').style.display = circleVisible ? '' : 'none';
+  document.getElementById('show-circ').classList.toggle('on', circleVisible);
+}
+
+function toggleCoords() {
+  coordsVisible = !coordsVisible;
+  document.getElementById('show-coords').classList.toggle('on', coordsVisible);
+  if (curAngle) highlightAngle(curAngle);
+}
+
+function resetStats() {
+  correct=0; total=0; streak=0; updateStats();
+}
+
+function updateStats() {
+  document.getElementById('s-cor').textContent = correct;
+  document.getElementById('s-tot').textContent = total;
+  document.getElementById('s-str').textContent = streak;
+  document.getElementById('s-pct').textContent = total===0 ? '\u2014' : Math.round(correct/total*100)+'%';
+}
+
+// ── SVG helpers ───────────────────────────────────────────────────────
+var NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, text) {
+  var e = document.createElementNS(NS, tag);
+  if (attrs) Object.keys(attrs).forEach(function(k){ e.setAttribute(k, attrs[k]); });
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// Determine what label to show on circle spokes based on current angleMode.
+// 'both' shows "45° / π/4" style, otherwise matches the mode.
+function spokeLabel(a) {
+  if (angleMode === 'deg')  return a.deg + '\u00b0';
+  if (angleMode === 'rad')  return a.rad;
+  return a.deg + '\u00b0\u200a/\u200a' + a.rad; // thin-space / thin-space
+}
+
+function rebuildSpokes() {
+  var g = document.getElementById('uc-spokes');
+  g.innerHTML = '';
+  var R = 115;
+  ANGLES.forEach(function(a) {
+    var px = (R*a.x).toFixed(1), py = (-R*a.y).toFixed(1);
+    g.appendChild(el('line',{x1:'0',y1:'0',x2:px,y2:py,
+      stroke:'var(--border-1)','stroke-width':'0.5'}));
+    g.appendChild(el('circle',{cx:px,cy:py,r:'2.5',fill:'var(--border-2)'}));
+
+    // Label — push further out when showing both to avoid overlap
+    var dist = (angleMode==='both') ? 138 : 128;
+    var lx = (dist*a.x).toFixed(1), ly = (-(dist*a.y)).toFixed(1);
+    var fs = (angleMode==='both') ? '7' : '8';
+    g.appendChild(el('text',{x:lx,y:ly,'font-size':fs,'text-anchor':'middle',
+      'dominant-baseline':'middle',fill:'var(--text-3)'}, spokeLabel(a)));
+  });
+}
+
+function highlightAngle(a) {
+  var g = document.getElementById('uc-hi');
+  g.innerHTML = '';
+  var R = 115;
+  var px = (R*a.x).toFixed(1), py = (-R*a.y).toFixed(1);
+
+  g.appendChild(el('line',{x1:'0',y1:'0',x2:px,y2:py,
+    stroke:'#2a7fd4','stroke-width':'2.5'}));
+  g.appendChild(el('circle',{cx:px,cy:py,r:'7',fill:'#2a7fd4'}));
+
+  // Show highlighted coordinate label only when coords are visible
+  if (coordsVisible) {
+    var ox = a.x >= 0 ? 10 : -10;
+    var oy = a.y > 0 ? -15 : (a.y < 0 ? 15 : -15);
+    var anchor = a.x >= 0 ? 'start' : 'end';
+    if (Math.abs(a.x) < 0.01) anchor = 'middle';
+
+    g.appendChild(el('text',{
+      x:(parseFloat(px)+ox).toFixed(1),
+      y:(parseFloat(py)+oy).toFixed(1),
+      'font-size':'9','text-anchor':anchor,
+      'font-weight':'600',fill:'#2a7fd4'
+    },'('+fmt(a.x)+', '+fmt(a.y)+')'));
+  }
+}
+
+// ── Question ──────────────────────────────────────────────────────────
+function renderQuestion() {
+  var mainText, subText = '';
+  if (angleMode==='deg')       mainText = curFn + '( ' + curAngle.deg + '\u00b0 )';
+  else if (angleMode==='rad')  mainText = curFn + '( ' + curAngle.rad + ' )';
+  else {
+    mainText = curFn + '( ' + curAngle.deg + '\u00b0 )';
+    subText  = 'also written as: ' + curAngle.rad;
+  }
+  var qEl = document.getElementById('q-text');
+  qEl.innerHTML = '';
+  qEl.appendChild(document.createTextNode(mainText));
+  if (subText) {
+    var span = document.createElement('span');
+    span.className = 'q-angle-alt';
+    span.textContent = subText;
+    qEl.appendChild(span);
+  }
+}
+
+function revealAnswer() {
+  if (revealed) return;
+  revealed = true;
+  document.getElementById('ans-cover').style.display = 'none';
+  document.getElementById('ans-reveal').style.display = 'block';
+  document.getElementById('grade-row').style.display = 'flex';
+
+  var v = fmt(curVal);
+  document.getElementById('ans-val').textContent = v;
+
+  var cx = fmt(curAngle.x), cy = fmt(curAngle.y);
+  var lines = [];
+  if (v==='undefined') {
+    lines.push('Denominator is zero \u2014 undefined');
+  } else {
+    if (curFn==='sin')      lines.push('y-coordinate  \u2192  ('+cx+', '+cy+')');
+    else if (curFn==='cos') lines.push('x-coordinate  \u2192  ('+cx+', '+cy+')');
+    else if (curFn==='tan') lines.push('y \u00f7 x  =  '+cy+' \u00f7 '+cx);
+    else if (curFn==='csc') lines.push('1 \u00f7 sin  =  1 \u00f7 '+cy);
+    else if (curFn==='sec') lines.push('1 \u00f7 cos  =  1 \u00f7 '+cx);
+    else if (curFn==='cot') lines.push('x \u00f7 y  =  '+cx+' \u00f7 '+cy);
+  }
+  // Always show both angle forms in the note
+  lines.push(curAngle.deg+'\u00b0  =  '+curAngle.rad);
+  document.getElementById('ans-note').textContent = lines.join('\n');
+}
+
+function grade(ok) {
+  total++; if (ok) { correct++; streak++; } else { streak=0; }
+  updateStats();
+  document.getElementById('grade-row').style.display = 'none';
+  var card = document.getElementById('q-card');
+  card.classList.add(ok ? 'flash-g' : 'flash-r');
+  setTimeout(function(){ card.classList.remove('flash-g','flash-r'); }, 500);
+}
+
+function nextQ() {
+  revealed = false;
+  document.getElementById('ans-cover').style.display = '';
+  document.getElementById('ans-reveal').style.display = 'none';
+  document.getElementById('grade-row').style.display = 'none';
+
+  var fns = Object.keys(activeFns);
+  var fn, angle, val, tries=0;
+  do {
+    fn    = fns[Math.floor(Math.random()*fns.length)];
+    angle = ANGLES[Math.floor(Math.random()*ANGLES.length)];
+    val   = getVal(fn, angle);
+    tries++;
+  } while (!isFinite(val) && tries<60);
+  if (!isFinite(val)) { nextQ(); return; }
+
+  curFn=fn; curAngle=angle; curVal=val;
+
+  var badge = document.getElementById('fn-badge');
+  badge.textContent = fn;
+  badge.className = 'fn-badge '+(RECIP[fn] ? 'recip' : 'basic');
+
+  renderQuestion();
+  highlightAngle(angle);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+rebuildSpokes();
+nextQ();
+</script>
+</body>
+</html>
