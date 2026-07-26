@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Checkout Tracker</title>
+<style>
+  :root{
+    --paper: #EDE3CC;
+    --paper-dark: #E2D5B2;
+    --card: #F8F2E2;
+    --ink: #2A2420;
+    --ink-light: #6B6152;
+    --ink-faint: #9C9280;
+    --line: #C9BB98;
+    --gold: #B8935F;
+    --out: #B23A2E;
+    --out-dark: #8C2C22;
+    --avail: #4F7A5B;
+    --avail-dark: #3A5D44;
+    --overdue: #A32A1F;
+    --mono: ui-monospace, "SFMono-Regular", "Consolas", "Liberation Mono", Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 2px 2px, rgba(0,0,0,0.035) 1px, transparent 0);
+    background-size:22px 22px;
+    color:var(--ink);
+    font-family:var(--sans);
+    min-height:100vh;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 20px 60px;}
+
+  header.app-header{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:14px;margin-bottom:22px;flex-wrap:wrap;gap:10px;
+  }
+  .app-title{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:1.6rem;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    display:flex;align-items:center;gap:10px;
+  }
+  .app-title .stamp-dot{
+    width:12px;height:12px;border-radius:50%;background:var(--out);
+    display:inline-block;
+  }
+  .app-sub{font-size:0.78rem;color:var(--ink-light);font-family:var(--mono);letter-spacing:0.4px;}
+  .header-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+  button{
+    font-family:var(--sans);
+    cursor:pointer;
+    border:2px solid var(--ink);
+    background:var(--card);
+    color:var(--ink);
+    padding:8px 14px;
+    border-radius:7px;
+    font-size:0.85rem;
+    font-weight:600;
+    transition:transform .08s ease;
+  }
+  button:hover{transform:translateY(-1px);}
+  button:active{transform:translateY(0);}
+  button.primary{background:var(--ink);color:var(--paper);}
+  button.ghost{background:transparent;border-color:var(--line);color:var(--ink-light);}
+  button.danger{border-color:var(--out);color:var(--out);background:transparent;}
+  button.danger:hover{background:var(--out);color:#fff;}
+  button.small{padding:4px 9px;font-size:0.72rem;border-radius:5px;}
+  button:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+  /* Tabs */
+  .class-bar{
+    display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;
+    background:var(--card);border:2px solid var(--line);border-radius:8px;padding:10px 14px;
+  }
+  .class-bar label{font-family:var(--mono);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-light);}
+  .class-bar select{
+    font-family:var(--sans);font-weight:700;font-size:0.95rem;padding:6px 10px;
+    border:2px solid var(--ink);border-radius:6px;background:var(--paper);color:var(--ink);
+  }
+  .class-bar .class-count{font-size:0.78rem;color:var(--ink-light);}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:2px solid var(--line);padding-bottom:0;}
+  .tab-btn{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+    padding:8px 16px;
+    border:2px solid transparent;
+    border-bottom:none;
+    background:transparent;
+    color:var(--ink-light);
+    border-radius:8px 8px 0 0;
+    position:relative;top:2px;
+  }
+  .tab-btn.active{
+    background:var(--card);
+    color:var(--ink);
+    border-color:var(--line);
+    border-bottom:2px solid var(--card);
+  }
+  .tab-btn .count-badge{
+    display:inline-block;margin-left:6px;background:var(--out);color:#fff;
+    border-radius:10px;padding:1px 7px;font-size:0.68rem;
+  }
+
+  .panel{background:var(--card);border:2px solid var(--line);border-radius:var(--radius);padding:20px;}
+
+  /* Setup screen */
+  .setup-screen h2{font-family:var(--mono);text-transform:uppercase;letter-spacing:0.4px;font-size:1.1rem;margin-top:0;}
+  .setup-intro{color:var(--ink-light);font-size:0.9rem;margin-bottom:18px;max-width:600px;}
+  .item-checklist{display:flex;flex-direction:column;gap:2px;}
+  .item-row{
+    display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px dashed var(--line);
+    flex-wrap:wrap;
+  }
+  .item-row label.main-label{display:flex;align-items:center;gap:10px;font-weight:600;min-width:200px;flex:1;cursor:pointer;}
+  .item-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--ink);}
+  .item-config{display:flex;align-items:center;gap:14px;font-size:0.82rem;color:var(--ink-light);flex-wrap:wrap;}
+  .item-config label{display:flex;align-items:center;gap:5px;}
+  .item-config input[type=number],.item-config input[type=text]{
+    width:56px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;font-family:var(--mono);
+  }
+  .item-config input[type=text].custom-name{width:140px;}
+  .custom-row{margin-top:10px;padding-top:10px;border-top:2px solid var(--ink);}
+
+  /* Numbered item grid = claim-check tags */
+  .tag-grid{display:flex;flex-wrap:wrap;gap:16px;}
+  .claim-tag{
+    width:112px;height:112px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:50%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    position:relative;cursor:pointer;
+    box-shadow:2px 2px 0 var(--line);
+    transition:transform .1s ease;
+    text-align:center;padding:6px;
+  }
+  .claim-tag:hover{transform:translateY(-2px);}
+  .claim-tag .tag-num{font-family:var(--mono);font-size:1.6rem;font-weight:700;line-height:1;}
+  .claim-tag .tag-label{font-size:0.6rem;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+  .claim-tag.out{background:#F3E4DE;border-color:var(--out);}
+  .claim-tag.out .tag-num{color:var(--out-dark);}
+  .claim-tag.overdue{background:#EFD4CE;border-color:var(--overdue);animation:pulse 1.6s infinite;}
+  .claim-tag .stamp{
+    position:absolute;top:38%;left:-6px;right:-6px;
+    font-family:var(--mono);font-weight:800;font-size:0.72rem;letter-spacing:1px;
+    color:var(--out);border:2px solid var(--out);border-radius:4px;
+    transform:rotate(-14deg);text-align:center;padding:1px 0;
+    background:rgba(255,255,255,0.75);
+  }
+  .claim-tag.overdue .stamp{color:var(--overdue);border-color:var(--overdue);content:"OVERDUE";}
+  .claim-tag .tag-who{font-size:0.62rem;color:var(--ink-light);margin-top:2px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @keyframes pulse{0%,100%{box-shadow:2px 2px 0 var(--line);}50%{box-shadow:2px 2px 0 var(--overdue), 0 0 0 4px rgba(163,42,31,0.15);}}
+
+  /* Non-numbered item area */
+  .loan-list{display:flex;flex-direction:column;gap:8px;}
+  .loan-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--paper-dark);border:1px solid var(--line);border-radius:8px;padding:10px 14px;
+    flex-wrap:wrap;
+  }
+  .loan-row.overdue{border-color:var(--overdue);background:#EFD4CE;}
+  .loan-name{font-weight:600;}
+  .loan-meta{font-family:var(--mono);font-size:0.75rem;color:var(--ink-light);}
+  .badge-overdue{font-family:var(--mono);font-size:0.68rem;color:#fff;background:var(--overdue);border-radius:5px;padding:2px 8px;letter-spacing:0.4px;}
+
+  .empty-state{color:var(--ink-faint);font-style:italic;padding:20px 0;text-align:center;}
+
+  /* modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(20,16,10,0.45);
+    display:flex;align-items:center;justify-content:center;z-index:50;
+    padding:24px 12px;overflow-y:auto;
+  }
+  .modal{
+    background:var(--card);border:2px solid var(--ink);border-radius:var(--radius);
+    padding:22px;width:100%;max-width:360px;box-shadow:4px 4px 0 var(--ink);
+    max-height:calc(100vh - 48px);overflow-y:auto;
+    display:flex;flex-direction:column;
+  }
+  .modal h3{margin-top:0;font-family:var(--mono);text-transform:uppercase;font-size:1rem;}
+  .modal select,.modal input{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;font-family:var(--sans);margin-bottom:12px;}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+
+  /* Roster / history */
+  .roster-list{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;}
+  .roster-row{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--line);}
+  .add-student-row{display:flex;gap:8px;margin-bottom:14px;}
+  .add-student-row input{flex:1;padding:8px;border:1px solid var(--line);border-radius:6px;}
+
+  table.history{width:100%;border-collapse:collapse;font-size:0.85rem;}
+  table.history th{font-family:var(--mono);text-transform:uppercase;font-size:0.68rem;letter-spacing:0.4px;text-align:left;border-bottom:2px solid var(--ink);padding:6px 8px;color:var(--ink-light);}
+  table.history td{padding:6px 8px;border-bottom:1px dashed var(--line);}
+  table.history tr:hover td{background:var(--paper-dark);}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-row select,.filter-row input{padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:var(--sans);font-size:0.82rem;}
+
+  .hidden{display:none !important;}
+
+  .settings-note{font-size:0.78rem;color:var(--ink-light);margin-top:6px;}
+  .category-manage-row{display:flex;align-items:center;justify-content:space-between;padding:8px 4px;border-bottom:1px dashed var(--line);}
+  .category-manage-row .cm-info{font-family:var(--mono);font-size:0.85rem;}
+  .category-manage-row .cm-meta{font-size:0.72rem;color:var(--ink-light);}
+
+  @media (max-width:600px){
+    .claim-tag{width:92px;height:92px;}
+    .app-title{font-size:1.25rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app-header">
+    <div>
+      <div class="app-title"><span class="stamp-dot"></span>Supply Checkout Tracker</div>
+      <div class="app-sub" id="header-sub">no items configured yet</div>
+    </div>
+    <div class="header-actions" id="header-actions"></div>
+  </header>
+
+  <div id="app-root"></div>
+</div>
+
+<script>
+/* ---------- Common item presets ---------- */
+const COMMON_ITEMS = [
+  {key:"calculators", name:"Calculators", numbered:true, defaultCount:8},
+  {key:"graphing_calculators", name:"Graphing Calculators", numbered:true, defaultCount:8},
+  {key:"textbooks", name:"Textbooks", numbered:true, defaultCount:30},
+  {key:"chromebooks", name:"Chromebooks / Laptops", numbered:true, defaultCount:30},
+  {key:"headphones", name:"Headphones", numbered:false},
+  {key:"pencils", name:"Pencils", numbered:false},
+  {key:"pens", name:"Pens", numbered:false},
+  {key:"rulers", name:"Rulers", numbered:false},
+  {key:"protractors", name:"Protractors", numbered:false},
+  {key:"markers", name:"Whiteboard Markers", numbered:false},
+  {key:"charging_cables", name:"Charging Cables", numbered:false},
+];
+
+/* ---------- State ---------- */
+const STORAGE_KEY = "supply_tracker_state_v1";
+let state = loadState();
+
+function defaultState(){
+  return {
+    setupDone:false,
+    categories:[], // {id,name,numbered,count,overdueMinutes,units:[{id,status,studentId,checkoutTime}] or activeLoans:[{id,studentId,checkoutTime}] }
+    classes:[], // {id,name,students:[{id,name}]}
+    activeClassId:null,
+    history:[], // {id,category,unit,studentName,className,checkoutTime,returnTime,durationMin}
+    activeTab:null
+  };
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const merged = Object.assign(defaultState(), parsed);
+    // migrate legacy flat roster (pre-classes) into a single default class
+    if(parsed.roster && parsed.roster.length && (!parsed.classes || parsed.classes.length===0)){
+      merged.classes = [{id: uid(), name:"All Students", students: parsed.roster}];
+      merged.activeClassId = merged.classes[0].id;
+      delete merged.roster;
+    }
+    return merged;
+  }catch(e){ return defaultState(); }
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function nowISO(){ return new Date().toISOString(); }
+function fmtTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+function fmtDateTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString() + " " + fmtTime(iso);
+}
+function minutesSince(iso){
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+}
+
+/* ---------- Render root ---------- */
+const root = document.getElementById("app-root");
+const headerActions = document.getElementById("header-actions");
+const headerSub = document.getElementById("header-sub");
+
+function render(){
+  saveState();
+  headerActions.innerHTML = "";
+  if(!state.setupDone && state.categories.length === 0){
+    headerSub.textContent = "let's set up your tracked items";
+    renderSetupScreen();
+    return;
+  }
+  const totalStudents = state.classes.reduce((sum,c)=>sum+c.students.length,0);
+  headerSub.textContent = state.categories.length + " item type" + (state.categories.length===1?"":"s") + " tracked · " + state.classes.length + " class" + (state.classes.length===1?"":"es") + " · " + totalStudents + " student" + (totalStudents===1?"":"s");
+
+  const manageItemsBtn = mkBtn("Manage Items", "ghost small", () => renderSetupScreen(true));
+  const manageRosterBtn = mkBtn("Manage Classes", "ghost small", renderRosterModal);
+  const historyBtn = mkBtn("View All Activity", "ghost small", renderHistoryScreen);
+  headerActions.appendChild(manageItemsBtn);
+  headerActions.appendChild(manageRosterBtn);
+  headerActions.appendChild(historyBtn);
+
+  renderMainScreen();
+}
+
+function mkBtn(label, cls, onClick){
+  const b = document.createElement("button");
+  b.textContent = label;
+  b.className = cls;
+  b.onclick = onClick;
+  return b;
+}
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+/* Native alert()/confirm()/prompt() are blocked in sandboxed previews, so we
+   use our own lightweight dialogs instead. These stack above any open modal. */
+function showAlert(message){
+  const backdrop = el("div","modal-backdrop");
+  backdrop.style.zIndex = "60";
+  const modal = el("div","modal");
+  modal.style.maxWidth = "320px";
+  modal.appendChild(el("p","",message));
+  const actions = el("div","modal-actions");
+  actions.appendChild(mkBtn("OK","primary",()=>backdrop.remove()));
+  modal.appendChild(actions);
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+function showConfirm(message, onConfirm){
+  const backdrop = el("div","modal-backdrop");
+  backdrop.style.zIndex = "60";
+  const modal = el("div","modal");
+  modal.style.maxWidth = "320px";
+  modal.appendChild(el("p","",message));
+  const actions = el("div","modal-actions");
+  actions.appendChild(mkBtn("Cancel","ghost",()=>backdrop.remove()));
+  actions.appendChild(mkBtn("Confirm","danger",()=>{ backdrop.remove(); onConfirm(); }));
+  modal.appendChild(actions);
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+function showPrompt(message, defaultValue, onSubmit){
+  const backdrop = el("div","modal-backdrop");
+  backdrop.style.zIndex = "60";
+  const modal = el("div","modal");
+  modal.style.maxWidth = "320px";
+  modal.appendChild(el("p","",message));
+  const input = document.createElement("input");
+  input.type = "text"; input.value = defaultValue || "";
+  modal.appendChild(input);
+  const actions = el("div","modal-actions");
+  actions.appendChild(mkBtn("Cancel","ghost",()=>backdrop.remove()));
+  const saveBtn = mkBtn("Save","primary",()=>{
+    const val = input.value.trim();
+    backdrop.remove();
+    if(val) onSubmit(val);
+  });
+  actions.appendChild(saveBtn);
+  modal.appendChild(actions);
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  input.focus();
+  input.addEventListener("keydown", e => { if(e.key==="Enter") saveBtn.click(); });
+}
+function showMoveStudentModal(student, fromClass, onDone){
+  const others = state.classes.filter(c=>c.id!==fromClass.id);
+  const backdrop = el("div","modal-backdrop");
+  backdrop.style.zIndex = "60";
+  const modal = el("div","modal");
+  modal.style.maxWidth = "320px";
+  modal.appendChild(el("h3","","Move "+student.name));
+  if(others.length === 0){
+    modal.appendChild(el("p","","There's no other class to move to yet. Add another class first."));
+    const actions = el("div","modal-actions");
+    actions.appendChild(mkBtn("Close","primary",()=>backdrop.remove()));
+    modal.appendChild(actions);
+  } else {
+    modal.appendChild(el("p","","Currently in "+fromClass.name+". Move to:"));
+    const select = document.createElement("select");
+    others.forEach(c => select.appendChild(new Option(c.name, c.id)));
+    modal.appendChild(select);
+    const actions = el("div","modal-actions");
+    actions.appendChild(mkBtn("Cancel","ghost",()=>backdrop.remove()));
+    actions.appendChild(mkBtn("Move","primary",()=>{
+      const target = state.classes.find(c=>c.id===select.value);
+      if(target){
+        fromClass.students = fromClass.students.filter(s=>s.id!==student.id);
+        target.students.push(student);
+        saveState();
+      }
+      backdrop.remove();
+      onDone();
+    }));
+    modal.appendChild(actions);
+  }
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+
+/* ---------- Setup screen ---------- */
+function renderSetupScreen(isEditing){
+  root.innerHTML = "";
+  const wrap = el("div","panel setup-screen");
+  wrap.appendChild(el("h2", "", isEditing ? "Manage Tracked Items" : "What do you want to track?"));
+  wrap.appendChild(el("p","setup-intro","Check off the common classroom items you lend out. Numbered items (like calculators) let you track which specific unit is out; unnumbered items (like pencils) just track who has one out."));
+
+  const checklist = el("div","item-checklist");
+  const existingByKey = {};
+  state.categories.forEach(c => existingByKey[c.presetKey || c.id] = c);
+
+  COMMON_ITEMS.forEach(preset => {
+    const existing = existingByKey[preset.key];
+    const row = el("div","item-row");
+    const checked = !!existing;
+
+    const label = el("label","main-label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = checked;
+    cb.dataset.key = preset.key;
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(preset.name + (preset.numbered ? "  (numbered)" : "")));
+    row.appendChild(label);
+
+    const config = el("div","item-config");
+    if(preset.numbered){
+      const countLabel = el("label","","# of units: ");
+      const countInput = document.createElement("input");
+      countInput.type="number"; countInput.min="1"; countInput.value = existing ? existing.count : preset.defaultCount;
+      countInput.dataset.countFor = preset.key;
+      countLabel.appendChild(countInput);
+      config.appendChild(countLabel);
+    }
+    const overdueLabel = el("label","","overdue after (min): ");
+    const overdueInput = document.createElement("input");
+    overdueInput.type="number"; overdueInput.min="1";
+    overdueInput.value = existing ? existing.overdueMinutes : 50;
+    overdueInput.dataset.overdueFor = preset.key;
+    overdueLabel.appendChild(overdueInput);
+    config.appendChild(overdueLabel);
+    row.appendChild(config);
+    checklist.appendChild(row);
+  });
+
+  // existing custom categories
+  const customCats = state.categories.filter(c => !c.presetKey);
+  const customContainer = el("div","");
+  customCats.forEach(c => {
+    const row = el("div","item-row");
+    const label = el("label","main-label");
+    const cb = document.createElement("input");
+    cb.type="checkbox"; cb.checked = true;
+    cb.dataset.customId = c.id;
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(c.name + (c.numbered ? "  (numbered)" : "") + "  [custom]"));
+    row.appendChild(label);
+    const config = el("div","item-config");
+    if(c.numbered){
+      const countLabel = el("label","","# of units: ");
+      const countInput = document.createElement("input");
+      countInput.type="number"; countInput.min="1"; countInput.value = c.count;
+      countInput.dataset.countForCustom = c.id;
+      countLabel.appendChild(countInput);
+      config.appendChild(countLabel);
+    }
+    const overdueLabel = el("label","","overdue after (min): ");
+    const overdueInput = document.createElement("input");
+    overdueInput.type="number"; overdueInput.min="1"; overdueInput.value = c.overdueMinutes;
+    overdueInput.dataset.overdueForCustom = c.id;
+    overdueLabel.appendChild(overdueInput);
+    config.appendChild(overdueLabel);
+    row.appendChild(config);
+    customContainer.appendChild(row);
+  });
+
+  wrap.appendChild(checklist);
+  wrap.appendChild(customContainer);
+
+  // add custom item
+  const customRow = el("div","custom-row item-row");
+  const customLabelText = el("div","","Add a custom item:");
+  customRow.appendChild(customLabelText);
+  const nameInput = document.createElement("input");
+  nameInput.type="text"; nameInput.placeholder="e.g. Lab goggles"; nameInput.className="custom-name"; nameInput.id="new-custom-name";
+  const numberedWrap = el("label","","");
+  const numberedCb = document.createElement("input");
+  numberedCb.type="checkbox"; numberedCb.id="new-custom-numbered";
+  numberedWrap.appendChild(numberedCb);
+  numberedWrap.appendChild(document.createTextNode(" numbered"));
+  const addCustomBtn = mkBtn("Add", "small", () => {
+    const nameVal = document.getElementById("new-custom-name").value.trim();
+    if(!nameVal) return;
+    const numberedVal = document.getElementById("new-custom-numbered").checked;
+    state.categories.push({
+      id: uid(),
+      name: nameVal,
+      numbered: numberedVal,
+      count: numberedVal ? 5 : null,
+      overdueMinutes: 50,
+      units: numberedVal ? makeUnits(5) : undefined,
+      activeLoans: numberedVal ? undefined : []
+    });
+    renderSetupScreen(true);
+  });
+  customRow.appendChild(nameInput);
+  customRow.appendChild(numberedWrap);
+  customRow.appendChild(addCustomBtn);
+  wrap.appendChild(customRow);
+
+  const actions = el("div","","");
+  actions.style.marginTop = "18px";
+  actions.style.display = "flex";
+  actions.style.gap = "8px";
+  const saveBtn = mkBtn(isEditing ? "Save Changes" : "Start Tracking", "primary", () => {
+    applySetup(checklist, customContainer);
+  });
+  actions.appendChild(saveBtn);
+  if(isEditing){
+    actions.appendChild(mkBtn("Cancel", "ghost", render));
+  }
+  wrap.appendChild(actions);
+
+  root.appendChild(wrap);
+}
+
+function makeUnits(count){
+  const units = [];
+  for(let i=1;i<=count;i++){
+    units.push({id:i, status:"available", studentId:null, checkoutTime:null});
+  }
+  return units;
+}
+
+function applySetup(checklist, customContainer){
+  const newCategories = [];
+  // presets
+  checklist.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    if(!cb.checked) return;
+    const key = cb.dataset.key;
+    const preset = COMMON_ITEMS.find(p => p.key === key);
+    const existing = state.categories.find(c => c.presetKey === key);
+    const overdueInput = checklist.querySelector('input[data-overdue-for="'+key+'"]');
+    const overdueMinutes = overdueInput ? parseInt(overdueInput.value)||50 : 50;
+    let count = null, units = undefined, activeLoans = undefined;
+    if(preset.numbered){
+      const countInput = checklist.querySelector('input[data-count-for="'+key+'"]');
+      count = countInput ? (parseInt(countInput.value)||1) : preset.defaultCount;
+      if(existing && existing.units){
+        units = resizeUnits(existing.units, count);
+      } else {
+        units = makeUnits(count);
+      }
+    } else {
+      activeLoans = existing ? existing.activeLoans || [] : [];
+    }
+    newCategories.push({
+      id: existing ? existing.id : uid(),
+      presetKey: key,
+      name: preset.name,
+      numbered: preset.numbered,
+      count, overdueMinutes, units, activeLoans
+    });
+  });
+  // custom existing
+  customContainer.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    if(!cb.checked) return;
+    const cid = cb.dataset.customId;
+    const existing = state.categories.find(c => c.id === cid);
+    if(!existing) return;
+    const overdueInput = customContainer.querySelector('input[data-overdue-for-custom="'+cid+'"]');
+    const overdueMinutes = overdueInput ? parseInt(overdueInput.value)||50 : 50;
+    let count = existing.count, units = existing.units;
+    if(existing.numbered){
+      const countInput = customContainer.querySelector('input[data-count-for-custom="'+cid+'"]');
+      count = countInput ? (parseInt(countInput.value)||1) : existing.count;
+      units = resizeUnits(existing.units||[], count);
+    }
+    newCategories.push(Object.assign({}, existing, {count, units, overdueMinutes}));
+  });
+  // any brand new customs already pushed directly into state.categories by Add button - merge those not yet in checklist/customContainer pass
+  state.categories.filter(c => !c.presetKey && !customContainer.querySelector('input[data-custom-id="'+c.id+'"]'))
+    .forEach(c => { if(!newCategories.find(nc=>nc.id===c.id)) newCategories.push(c); });
+
+  state.categories = newCategories;
+  state.setupDone = true;
+  if(!state.activeTab && state.categories.length){
+    state.activeTab = state.categories[0].id;
+  }
+  render();
+}
+
+function resizeUnits(units, newCount){
+  const result = [];
+  for(let i=1;i<=newCount;i++){
+    const existingUnit = units.find(u => u.id === i);
+    result.push(existingUnit || {id:i, status:"available", studentId:null, checkoutTime:null});
+  }
+  return result;
+}
+
+/* ---------- Main screen (tabs) ---------- */
+function renderMainScreen(){
+  root.innerHTML = "";
+  if(state.categories.length === 0){
+    root.appendChild(el("div","panel empty-state","No items configured. Click \"Manage Items\" to get started."));
+    return;
+  }
+  if(!state.activeTab || !state.categories.find(c=>c.id===state.activeTab)){
+    state.activeTab = state.categories[0].id;
+  }
+
+  if(state.classes.length > 0){
+    if(!state.activeClassId || !state.classes.find(c=>c.id===state.activeClassId)){
+      state.activeClassId = state.classes[0].id;
+    }
+    const classBar = el("div","class-bar");
+    const label = el("label","","Class:");
+    const select = document.createElement("select");
+    state.classes.forEach(c => {
+      const opt = new Option(c.name + " (" + c.students.length + ")", c.id);
+      select.appendChild(opt);
+    });
+    select.value = state.activeClassId;
+    select.onchange = () => { state.activeClassId = select.value; renderMainScreen(); };
+    classBar.appendChild(label);
+    classBar.appendChild(select);
+    root.appendChild(classBar);
+  } else {
+    const classBar = el("div","class-bar");
+    classBar.appendChild(el("div","class-count","No classes yet — click \"Manage Classes\" to add one and speed up student lookup."));
+    root.appendChild(classBar);
+  }
+
+  const tabs = el("div","tabs");
+  state.categories.forEach(cat => {
+    const activeCount = cat.numbered
+      ? cat.units.filter(u=>u.status==="out").length
+      : (cat.activeLoans||[]).length;
+    const btn = el("button","tab-btn" + (cat.id===state.activeTab?" active":""),
+      cat.name + (activeCount>0 ? '<span class="count-badge">'+activeCount+'</span>' : ""));
+    btn.onclick = () => { state.activeTab = cat.id; renderMainScreen(); };
+    tabs.appendChild(btn);
+  });
+  root.appendChild(tabs);
+
+  const cat = state.categories.find(c=>c.id===state.activeTab);
+  const panel = el("div","panel");
+  if(cat.numbered){
+    renderNumberedPanel(panel, cat);
+  } else {
+    renderLoanPanel(panel, cat);
+  }
+  root.appendChild(panel);
+}
+
+function findStudentGlobal(id){
+  for(const c of state.classes){
+    const s = c.students.find(st=>st.id===id);
+    if(s) return s;
+  }
+  return null;
+}
+function studentName(id){
+  const s = findStudentGlobal(id);
+  return s ? s.name : "Unknown";
+}
+function activeClass(){
+  return state.classes.find(c=>c.id===state.activeClassId) || null;
+}
+
+function renderNumberedPanel(panel, cat){
+  const grid = el("div","tag-grid");
+  cat.units.forEach(unit => {
+    const isOut = unit.status === "out";
+    const overdue = isOut && minutesSince(unit.checkoutTime) >= cat.overdueMinutes;
+    const tag = el("div","claim-tag" + (isOut?" out":"") + (overdue?" overdue":""));
+    tag.appendChild(el("div","tag-num","#"+unit.id));
+    if(isOut){
+      tag.appendChild(el("div","stamp", overdue ? "OVERDUE" : "OUT"));
+      tag.appendChild(el("div","tag-who", studentName(unit.studentId)));
+      tag.appendChild(el("div","tag-label", fmtTime(unit.checkoutTime)));
+    } else {
+      tag.appendChild(el("div","tag-label","available"));
+    }
+    tag.onclick = () => {
+      if(isOut){ openReturnModal(cat, unit); }
+      else { openCheckoutModal(cat, unit); }
+    };
+    grid.appendChild(tag);
+  });
+  panel.appendChild(grid);
+}
+
+function renderLoanPanel(panel, cat){
+  const toolbar = el("div","toolbar");
+  toolbar.appendChild(el("div","","<strong>"+cat.name+"</strong>"));
+  const checkoutBtn = mkBtn("Check Out to Student", "primary small", () => openCheckoutModal(cat, null));
+  toolbar.appendChild(checkoutBtn);
+  panel.appendChild(toolbar);
+
+  const list = el("div","loan-list");
+  const loans = cat.activeLoans || [];
+  if(loans.length === 0){
+    list.appendChild(el("div","empty-state","Nothing currently checked out."));
+  } else {
+    loans.forEach(loan => {
+      const overdue = minutesSince(loan.checkoutTime) >= cat.overdueMinutes;
+      const row = el("div","loan-row" + (overdue?" overdue":""));
+      const left = el("div","");
+      left.appendChild(el("div","loan-name", studentName(loan.studentId)));
+      left.appendChild(el("div","loan-meta","out since "+fmtTime(loan.checkoutTime)+" · "+minutesSince(loan.checkoutTime)+" min"));
+      row.appendChild(left);
+      const right = el("div","");
+      right.style.display="flex"; right.style.alignItems="center"; right.style.gap="8px";
+      if(overdue) right.appendChild(el("span","badge-overdue","OVERDUE"));
+      const returnBtn = mkBtn("Mark Returned","small",() => returnLoan(cat, loan));
+      right.appendChild(returnBtn);
+      row.appendChild(right);
+      list.appendChild(row);
+    });
+  }
+  panel.appendChild(list);
+}
+
+/* ---------- Checkout / return actions ---------- */
+function openCheckoutModal(cat, unit){
+  const cls = activeClass();
+  if(!cls || cls.students.length === 0){
+    showAlert("Add students to a class first (Manage Classes), then select that class from the Class selector.");
+    return;
+  }
+  const backdrop = el("div","modal-backdrop");
+  const modal = el("div","modal");
+  modal.appendChild(el("h3","", (unit ? "Check Out #"+unit.id : "Check Out "+cat.name)));
+  modal.appendChild(el("div","settings-note","Class: "+cls.name));
+  const select = document.createElement("select");
+  cls.students.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.id; opt.textContent = s.name;
+    select.appendChild(opt);
+  });
+  modal.appendChild(select);
+  const actions = el("div","modal-actions");
+  actions.appendChild(mkBtn("Cancel","ghost",() => backdrop.remove()));
+  actions.appendChild(mkBtn("Check Out","primary", () => {
+    const studentId = select.value;
+    const time = nowISO();
+    const className = cls.name;
+    if(unit){
+      unit.status = "out"; unit.studentId = studentId; unit.checkoutTime = time; unit.className = className;
+    } else {
+      cat.activeLoans = cat.activeLoans || [];
+      cat.activeLoans.push({id:uid(), studentId, checkoutTime:time, className});
+    }
+    backdrop.remove();
+    render();
+  }));
+  modal.appendChild(actions);
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+
+function openReturnModal(cat, unit){
+  const backdrop = el("div","modal-backdrop");
+  const modal = el("div","modal");
+  modal.appendChild(el("h3","","Return #"+unit.id));
+  modal.appendChild(el("p","","Checked out to <strong>"+studentName(unit.studentId)+"</strong> at "+fmtTime(unit.checkoutTime)+"."));
+  const actions = el("div","modal-actions");
+  actions.appendChild(mkBtn("Cancel","ghost",() => backdrop.remove()));
+  actions.appendChild(mkBtn("Mark Returned","primary", () => {
+    logHistory(cat.name, "#"+unit.id, studentName(unit.studentId), unit.className||"", unit.checkoutTime, nowISO());
+    unit.status = "available"; unit.studentId = null; unit.checkoutTime = null; unit.className = null;
+    backdrop.remove();
+    render();
+  }));
+  modal.appendChild(actions);
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+
+function returnLoan(cat, loan){
+  logHistory(cat.name, "", studentName(loan.studentId), loan.className||"", loan.checkoutTime, nowISO());
+  cat.activeLoans = cat.activeLoans.filter(l => l.id !== loan.id);
+  render();
+}
+
+function logHistory(catName, unitLabel, studentNameVal, className, checkoutISO, returnISO){
+  const durationMin = Math.round((new Date(returnISO) - new Date(checkoutISO)) / 60000);
+  state.history.push({
+    id: uid(), category:catName, unit:unitLabel, student:studentNameVal, className:className||"",
+    checkoutTime:checkoutISO, returnTime:returnISO, durationMin
+  });
+}
+
+/* ---------- Roster modal ---------- */
+function renderRosterModal(){
+  const backdrop = el("div","modal-backdrop");
+  const modal = el("div","modal");
+  modal.style.maxWidth = "460px";
+  modal.appendChild(el("h3","","Manage Classes"));
+
+  // --- Class picker / add-class row ---
+  const classRow = el("div","add-student-row");
+  const classSelect = document.createElement("select");
+  classSelect.style.flex = "1";
+  const newClassInput = document.createElement("input");
+  newClassInput.type = "text"; newClassInput.placeholder = "New class name (e.g. Period 3 Algebra 2)";
+  const addClassBtn = mkBtn("Add Class","small", () => {
+    const name = newClassInput.value.trim();
+    if(!name) return;
+    const newClass = {id:uid(), name, students:[]};
+    state.classes.push(newClass);
+    newClassInput.value = "";
+    saveState();
+    populateClassSelect();
+    classSelect.value = newClass.id;
+    refreshStudentPanel();
+  });
+  newClassInput.addEventListener("keydown", e => { if(e.key==="Enter") addClassBtn.click(); });
+  modal.appendChild(el("div","settings-note","Select a class to edit its roster, or add a new one:"));
+  modal.appendChild(classRow);
+  classRow.appendChild(classSelect);
+  const renameBtn = mkBtn("Rename","small ghost", () => {
+    const cls = state.classes.find(c=>c.id===classSelect.value);
+    if(!cls) return;
+    showPrompt("Rename class:", cls.name, (newName) => {
+      cls.name = newName;
+      saveState();
+      populateClassSelect();
+      classSelect.value = cls.id;
+    });
+  });
+  const deleteClassBtn = mkBtn("Delete Class","small danger", () => {
+    const cls = state.classes.find(c=>c.id===classSelect.value);
+    if(!cls) return;
+    showConfirm("Delete \""+cls.name+"\"? Its students' past activity history stays intact, but they'll no longer appear in any class roster.", () => {
+      state.classes = state.classes.filter(c=>c.id!==cls.id);
+      saveState();
+      populateClassSelect();
+      refreshStudentPanel();
+    });
+  });
+  classRow.appendChild(renameBtn);
+  classRow.appendChild(deleteClassBtn);
+
+  const addClassRow = el("div","add-student-row");
+  addClassRow.appendChild(newClassInput);
+  addClassRow.appendChild(addClassBtn);
+  modal.appendChild(addClassRow);
+
+  modal.appendChild(el("div","","<hr style='border:none;border-top:2px solid var(--ink);margin:14px 0;'>"));
+
+  // --- Student add/list for selected class ---
+  const studentPanel = el("div","");
+  modal.appendChild(studentPanel);
+
+  function populateClassSelect(){
+    const prev = classSelect.value;
+    classSelect.innerHTML = "";
+    state.classes.forEach(c => classSelect.appendChild(new Option(c.name+" ("+c.students.length+")", c.id)));
+    if(state.classes.find(c=>c.id===prev)) classSelect.value = prev;
+  }
+
+  function refreshStudentPanel(){
+    studentPanel.innerHTML = "";
+    const cls = state.classes.find(c=>c.id===classSelect.value);
+    if(!cls){
+      studentPanel.appendChild(el("div","empty-state","Add a class above to start building its roster."));
+      return;
+    }
+    const addRow = el("div","add-student-row");
+    const input = document.createElement("input");
+    input.type="text"; input.placeholder="Student name";
+    const addBtn = mkBtn("Add","small", () => {
+      const name = input.value.trim();
+      if(!name) return;
+      cls.students.push({id:uid(), name});
+      input.value = "";
+      saveState();
+      populateClassSelect();
+      refreshStudentPanel();
+    });
+    input.addEventListener("keydown", e => { if(e.key==="Enter") addBtn.click(); });
+    addRow.appendChild(input); addRow.appendChild(addBtn);
+    studentPanel.appendChild(addRow);
+
+    const bulkNote = el("div","settings-note","Tip: paste one name per line to add this whole class at once.");
+    studentPanel.appendChild(bulkNote);
+    const bulkArea = document.createElement("textarea");
+    bulkArea.rows = 3; bulkArea.style.width="100%"; bulkArea.placeholder="Jamie Lee\nAlex Chen\n...";
+    bulkArea.style.marginBottom="10px"; bulkArea.style.fontFamily="inherit"; bulkArea.style.padding="8px";
+    bulkArea.style.border="1px solid var(--line)"; bulkArea.style.borderRadius="6px";
+    studentPanel.appendChild(bulkArea);
+    const bulkAddBtn = mkBtn("Add List","small",() => {
+      const names = bulkArea.value.split("\n").map(s=>s.trim()).filter(Boolean);
+      names.forEach(n => cls.students.push({id:uid(), name:n}));
+      bulkArea.value = "";
+      saveState();
+      populateClassSelect();
+      refreshStudentPanel();
+    });
+    studentPanel.appendChild(bulkAddBtn);
+
+    const listDiv = el("div","roster-list");
+    listDiv.style.marginTop = "14px";
+    cls.students.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+      const row = el("div","roster-row");
+      row.appendChild(el("div","",s.name));
+      const btnGroup = el("div","");
+      btnGroup.style.display = "flex"; btnGroup.style.gap = "6px";
+      const moveBtn = mkBtn("Move","small ghost", () => {
+        showMoveStudentModal(s, cls, () => { populateClassSelect(); refreshStudentPanel(); });
+      });
+      const removeBtn = mkBtn("Remove","small danger", () => {
+        showConfirm("Remove "+s.name+" from "+cls.name+"? Their past activity history stays intact.", () => {
+          cls.students = cls.students.filter(r=>r.id!==s.id);
+          saveState();
+          populateClassSelect();
+          refreshStudentPanel();
+        });
+      });
+      btnGroup.appendChild(moveBtn);
+      btnGroup.appendChild(removeBtn);
+      row.appendChild(btnGroup);
+      listDiv.appendChild(row);
+    });
+    if(cls.students.length===0){
+      listDiv.appendChild(el("div","empty-state","No students yet."));
+    }
+    studentPanel.appendChild(listDiv);
+  }
+
+  classSelect.onchange = refreshStudentPanel;
+  populateClassSelect();
+  refreshStudentPanel();
+
+  const actions = el("div","modal-actions");
+  actions.style.marginTop = "14px";
+  actions.appendChild(mkBtn("Done","primary", () => { backdrop.remove(); render(); }));
+  modal.appendChild(actions);
+
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+
+/* ---------- History screen ---------- */
+function renderHistoryScreen(){
+  root.innerHTML = "";
+  const panel = el("div","panel");
+
+  const toolbar = el("div","toolbar");
+  toolbar.appendChild(el("div","","<strong>All Activity</strong>"));
+  const btnGroup = el("div","filter-row");
+  const backBtn = mkBtn("Back","ghost small", render);
+  const exportBtn = mkBtn("Export CSV","small", exportCSV);
+  btnGroup.appendChild(exportBtn);
+  btnGroup.appendChild(backBtn);
+  toolbar.appendChild(btnGroup);
+  panel.appendChild(toolbar);
+
+  const filterRow = el("div","filter-row");
+  filterRow.style.marginBottom = "14px";
+  const catSelect = document.createElement("select");
+  catSelect.appendChild(new Option("All items",""));
+  [...new Set(state.history.map(h=>h.category))].forEach(c => catSelect.appendChild(new Option(c,c)));
+  const classSelectFilter = document.createElement("select");
+  classSelectFilter.appendChild(new Option("All classes",""));
+  [...new Set(state.history.map(h=>h.className).filter(Boolean))].forEach(c => classSelectFilter.appendChild(new Option(c,c)));
+  const studentSelect = document.createElement("select");
+  studentSelect.appendChild(new Option("All students",""));
+  [...new Set(state.history.map(h=>h.student))].sort().forEach(s => studentSelect.appendChild(new Option(s,s)));
+  filterRow.appendChild(catSelect);
+  filterRow.appendChild(classSelectFilter);
+  filterRow.appendChild(studentSelect);
+  panel.appendChild(filterRow);
+
+  const tableWrap = el("div","");
+  panel.appendChild(tableWrap);
+
+  function drawTable(){
+    tableWrap.innerHTML = "";
+    let rows = state.history.slice().reverse();
+    if(catSelect.value) rows = rows.filter(r=>r.category===catSelect.value);
+    if(classSelectFilter.value) rows = rows.filter(r=>r.className===classSelectFilter.value);
+    if(studentSelect.value) rows = rows.filter(r=>r.student===studentSelect.value);
+    if(rows.length === 0){
+      tableWrap.appendChild(el("div","empty-state","No activity recorded yet."));
+      return;
+    }
+    const table = document.createElement("table");
+    table.className = "history";
+    table.innerHTML = "<thead><tr><th>Item</th><th>Unit</th><th>Class</th><th>Student</th><th>Out</th><th>Returned</th><th>Duration</th></tr></thead>";
+    const tbody = document.createElement("tbody");
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = "<td>"+r.category+"</td><td>"+(r.unit||"—")+"</td><td>"+(r.className||"—")+"</td><td>"+r.student+"</td>"+
+        "<td>"+fmtDateTime(r.checkoutTime)+"</td><td>"+fmtDateTime(r.returnTime)+"</td><td>"+r.durationMin+" min</td>";
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    const totalNote = el("div","settings-note", rows.length + " record" + (rows.length===1?"":"s"));
+    totalNote.style.marginTop = "10px";
+    tableWrap.appendChild(totalNote);
+  }
+  catSelect.onchange = drawTable;
+  classSelectFilter.onchange = drawTable;
+  studentSelect.onchange = drawTable;
+  drawTable();
+
+  root.appendChild(panel);
+}
+
+function exportCSV(){
+  const header = "Item,Unit,Class,Student,Checkout Time,Return Time,Duration (minutes)\n";
+  const rows = state.history.map(r =>
+    [r.category, r.unit||"", r.className||"", r.student, r.checkoutTime, r.returnTime, r.durationMin]
+      .map(v => '"'+String(v).replace(/"/g,'""')+'"').join(",")
+  ).join("\n");
+  const blob = new Blob([header+rows], {type:"text/csv"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "checkout-history-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- Auto-refresh for overdue timers ---------- */
+setInterval(() => {
+  if(state.setupDone) renderMainScreenIfVisible();
+}, 30000);
+function renderMainScreenIfVisible(){
+  // only re-render the timer-sensitive main screen (not modals/history) to avoid disrupting user
+  if(document.querySelector(".modal-backdrop")) return;
+  if(!root.querySelector(".tag-grid") && !root.querySelector(".loan-list")) return;
+  renderMainScreen();
+}
+
+/* ---------- Init ---------- */
+render();
+</script>
+</body>
+</html>
