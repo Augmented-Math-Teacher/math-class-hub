@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investigative Question Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board:#234038;
+    --chalk:#f1f0e6;
+    --tray:#c4ae82;
+    --paper:#f3f8fb;
+    --grid:#cfe0ec;
+    --ink:#1e2a38;
+    --good:#1f7a46;
+    --bad:#b8321f;
+    --hg:#ffe27a;   /* group */
+    --hv:#9bd8f5;   /* variable */
+    --hp:#ffb3cd;   /* parameter */
+    --hand:'Patrick Hand','Segoe Print','Comic Sans MS',cursive;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box}
+  html{font-size:100%}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:var(--serif);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:28px 28px;
+    min-height:100vh;
+  }
+  header.board{
+    background:var(--board);
+    color:var(--chalk);
+    padding:1.4rem 1.25rem 1.2rem;
+    border-bottom:8px solid var(--tray);
+    text-align:center;
+  }
+  header.board h1{
+    font-family:var(--hand);
+    font-weight:400;
+    font-size:clamp(1.9rem,4.5vw,2.8rem);
+    margin:0 0 .25rem;
+    letter-spacing:.01em;
+  }
+  header.board p{margin:0;font-size:1.05rem;opacity:.9}
+  main{max-width:880px;margin:0 auto;padding:1.25rem 1rem 3rem}
+
+  .bar{display:flex;flex-wrap:wrap;gap:.75rem 1.25rem;align-items:center;justify-content:space-between;margin-bottom:1rem;font-family:var(--hand);font-size:1.15rem}
+  .bar label{display:inline-flex;align-items:center;gap:.45rem;cursor:pointer}
+  .bar input{width:1.15rem;height:1.15rem;accent-color:var(--board)}
+  #score{font-size:1.05rem}
+  #score button{font:inherit;background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;margin-left:.5rem;padding:.2rem}
+
+  details.guide{
+    background:rgba(255,255,255,.9);
+    border:2px solid var(--ink);
+    border-radius:6px 10px 8px 12px;
+    padding:.6rem 1rem;
+    margin-bottom:1rem;
+  }
+  details.guide summary{font-family:var(--hand);font-size:1.25rem;cursor:pointer}
+  details.guide .inner{padding:.5rem 0 .4rem;line-height:1.55}
+  details.guide ul{margin:.4rem 0 .8rem;padding-left:1.2rem}
+  .def{display:grid;grid-template-columns:auto 1fr;gap:.35rem .8rem;align-items:baseline;margin:.6rem 0}
+  .example{font-size:1.15rem;margin:.8rem 0 .2rem;padding:.7rem .9rem;background:#fff;border:1.5px dashed var(--ink);border-radius:6px;line-height:2}
+
+  .card{
+    background:rgba(255,255,255,.95);
+    border:2px solid var(--ink);
+    border-radius:6px 12px 8px 14px;
+    box-shadow:5px 5px 0 rgba(30,42,56,.16);
+    padding:clamp(1.1rem,3vw,2rem);
+  }
+  .qtext{
+    font-size:clamp(1.45rem,3.6vw,2.25rem);
+    line-height:2;
+    font-weight:400;
+    margin:0 0 1.1rem;
+    max-width:36em;
+  }
+  .prompt{font-family:var(--hand);font-size:1.45rem;margin:0 0 .8rem}
+  .row{display:flex;flex-wrap:wrap;gap:.7rem;margin:.4rem 0 .2rem}
+
+  button.btn{
+    font-family:var(--hand);font-size:1.3rem;
+    padding:.6rem 1.3rem;min-height:3rem;
+    border:2px solid var(--ink);border-radius:8px;
+    background:#fff;color:var(--ink);cursor:pointer;
+  }
+  button.btn:hover{background:var(--ink);color:#fff}
+  button.btn.primary{background:var(--ink);color:#fff}
+  button.btn.primary:hover{background:var(--board)}
+  button.btn.quiet{border-style:dashed;border-width:1.5px}
+  button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid #2a6fdb;outline-offset:2px}
+
+  /* words in the question */
+  .w{font:inherit;color:inherit;background:none;border:0;margin:0;padding:.05em .14em;border-radius:.25em;cursor:inherit}
+  button.w{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button.w:hover{background:rgba(30,42,56,.1)}
+  .t-g{background:var(--hg);text-decoration:underline solid var(--ink) 2px;text-underline-offset:.2em}
+  .t-v{background:var(--hv);text-decoration:underline dashed var(--ink) 2px;text-underline-offset:.2em}
+  .t-p{background:var(--hp);text-decoration:underline wavy var(--ink) 1.5px;text-underline-offset:.2em}
+  button.w.t-g:hover,button.w.t-v:hover,button.w.t-p:hover{filter:brightness(.95)}
+  .w.ok{outline:2.5px solid var(--good)}
+  .w.bad{outline:2.5px solid var(--bad)}
+
+  /* highlighter picker */
+  .pens{display:flex;flex-wrap:wrap;gap:.6rem;margin:0 0 1rem}
+  button.pen{
+    display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;
+    text-align:left;
+    padding:.5rem .85rem;min-height:3.2rem;
+    border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);cursor:pointer;
+    font-family:var(--serif);font-size:.95rem;
+  }
+  button.pen[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--ink);background:#f7f7f2}
+  button.pen .chip{font-size:1.2rem}
+  .chip{font-family:var(--hand);padding:.05em .5em;border-radius:.3em;display:inline-block}
+
+  .banner{
+    border-left:6px solid var(--ink);
+    background:#f7f7f2;
+    padding:.7rem 1rem;margin:.9rem 0;
+    font-size:1.1rem;line-height:1.5;
+  }
+  .banner.ok{border-color:var(--good)}
+  .banner.bad{border-color:var(--bad)}
+  .banner strong{font-weight:600}
+  .results{list-style:none;margin:.6rem 0 1rem;padding:0;font-size:1.05rem}
+  .results li{display:flex;gap:.7rem;align-items:baseline;margin:.35rem 0;line-height:1.45}
+  .results .mark{font-family:var(--hand);font-size:1.3rem;min-width:1.4rem}
+  .results .ok-t{color:var(--good)}
+  .results .bad-t{color:var(--bad)}
+  .key{display:grid;grid-template-columns:auto 1fr;gap:.4rem .8rem;align-items:baseline;margin:.6rem 0 1rem;font-size:1.1rem;line-height:1.45}
+  .fix{margin-top:.5rem}
+  .flaw{font-family:var(--hand);font-size:1.2rem}
+
+  @media (max-width:520px){
+    button.btn{flex:1 1 auto}
+    .def,.key{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="board">
+  <h1>Investigative Question Checker</h1>
+  <p>Decide whether each question is investigative. If it is, mark its three parts.</p>
+</header>
+
+<main>
+  <div class="bar">
+    <label><input type="checkbox" id="inclNon" checked> Include non-examples</label>
+    <div id="score" aria-live="polite"></div>
+  </div>
+
+  <details class="guide">
+    <summary>What are the three parts?</summary>
+    <div class="inner" id="guide"></div>
+  </details>
+
+  <section class="card" aria-live="polite">
+    <p class="qtext" id="qtext"></p>
+    <p class="prompt" id="prompt"></p>
+    <div class="pens" id="pens" role="group" aria-label="Highlighters" hidden></div>
+    <div class="row" id="actions"></div>
+    <div id="feedback"></div>
+  </section>
+</main>
+
+<script>
+/* ============================================================
+   EDIT HERE: component names and descriptions
+   ============================================================ */
+const COMPONENTS = {
+  g: { name: 'Group',     blurb: 'who or what the question is about',
+       long: 'The individuals or objects the question is about.' },
+  v: { name: 'Variable',  blurb: 'what is measured on each one',
+       long: 'The characteristic recorded for each individual in the group.' },
+  p: { name: 'Parameter', blurb: 'the summary or comparison asked for',
+       long: 'The summary (mean, median, proportion…) or relationship the question asks about.' }
+};
+
+/* ============================================================
+   EDIT HERE: the question bank
+
+   Good questions use markup to label the parts:
+     [g:...] group     [v:...] variable     [p:...] parameter
+   Add a ? after the letter, like [p?:positive], for words that are
+   allowed but not required. The words "the", "a", "an" are never graded.
+
+   Non-examples have ok:false, a flaw label, a reason, and a better version.
+   ============================================================ */
+const QUESTIONS = [
+  // ---- Investigative questions ----
+  { ok:true, m:`What is the [p:mean] [v:number of hours of sleep per night] for [g:students at our school]?` },
+  { ok:true, m:`What [p:proportion] of [g:AP Statistics students at our school] [v:prefer to study with music playing]?` },
+  { ok:true, m:`Is the [p:mean] [v:commute time to school] longer for [g:seniors at our school] than for [g:sophomores at our school]?` },
+  { ok:true, m:`Is the [p:median] [v:GPA] higher for [g:athletes at our school] than for [g:non-athletes at our school]?` },
+  { ok:true, m:`Is there a [p?:positive] [p:relationship] between [v:height] and [v:arm span] for [g:students in our class]?` },
+  { ok:true, m:`What is the [p:mean] [v:asking price] of [g:used cars listed for sale in Albuquerque this week]?` },
+  { ok:true, m:`What [p:percentage] of [g:students at our school] [v:own a smartphone]?` },
+  { ok:true, m:`What is the [p:median] [v:resting heart rate] of [g:high school athletes in New Mexico]?` },
+  { ok:true, m:`What is the [p:mean] [v:amount of screen time per day] for [g:teenagers in the United States]?` },
+  { ok:true, m:`Is the [p:mean] [v:time to solve a puzzle] shorter for [g:students who listen to music] than for [g:students who work in silence]?` },
+  { ok:true, m:`Is the [p:mean] [v:battery life] longer for [g:Brand A phones] than for [g:Brand B phones]?` },
+  { ok:true, m:`What is the [p:mean] [v:wait time] for [g:customers at a local fast-food drive-thru]?` },
+  { ok:true, m:`Is there a [p:relationship] between [v:hours studied] and [v:exam score] for [g:AP Statistics students at our school]?` },
+  { ok:true, m:`What [p:proportion] of [g:students at our school] [v:walk to school]?` },
+  { ok:true, m:`What is the [p:mean] [v:grams of sugar per serving] in [g:breakfast cereals sold in U.S. grocery stores]?` },
+  { ok:true, m:`What is the [p:mean] [v:number of pets] for [g:households in Albuquerque]?` },
+  { ok:true, m:`What is the [p:mean] [v:age] of [g:cars in our school parking lot]?` },
+  { ok:true, m:`What is the [p:median] [v:monthly rent] for [g:one-bedroom apartments in Albuquerque]?` },
+
+  // ---- Non-examples ----
+  { ok:false, m:`How many students are enrolled at our school?`,
+    flaw:'No variability',
+    why:'This has one factual answer. There is no variability to investigate and no data to summarize.',
+    fix:'What is the mean class size at our school?' },
+  { ok:false, m:`Is pepperoni the best pizza topping?`,
+    flaw:'Not measurable',
+    why:'“Best” is an opinion. There is no measurable variable and no group.',
+    fix:'What proportion of students at our school name pepperoni as their favorite pizza topping?' },
+  { ok:false, m:`Did Maria eat breakfast this morning?`,
+    flaw:'Single individual',
+    why:'It asks about one person, so there is no group and no variability to summarize.',
+    fix:'What proportion of students at our school ate breakfast this morning?' },
+  { ok:false, m:`What is the average number of text messages sent per day?`,
+    flaw:'No group',
+    why:'Average for whom? The question never says which group it is about.',
+    fix:'What is the mean number of text messages sent per day by teenagers in the United States?' },
+  { ok:false, m:`How do students at our school feel about the dress code?`,
+    flaw:'No summary measure',
+    why:'“Feel” is not a clearly defined variable, and the question does not say what summary to compute.',
+    fix:'What proportion of students at our school support the current dress code?' },
+  { ok:false, m:`Are students at our school healthy?`,
+    flaw:'Not measurable',
+    why:'“Healthy” is not one measurable variable, and there is no summary measure.',
+    fix:'What is the median resting heart rate of students at our school?' },
+  { ok:false, m:`Why do some students sleep more than others?`,
+    flaw:'Asks why',
+    why:'It asks for causes. An investigative question asks what data show about a group, not why.',
+    fix:'Is there a relationship between hours of homework and hours of sleep for students at our school?' },
+  { ok:false, m:`What is the mean of 4, 7, 9, 12, and 15?`,
+    flaw:'No group',
+    why:'This is a calculation. There is no group and no variable being measured.',
+    fix:'What is the mean number of siblings for students in our class?' },
+  { ok:false, m:`Will it snow in Albuquerque tomorrow?`,
+    flaw:'Single event',
+    why:'It asks about one future event, not about variability across a group.',
+    fix:'What proportion of January days in Albuquerque have measurable snowfall?' },
+  { ok:false, m:`Is Algebra 2 harder than Statistics?`,
+    flaw:'Not measurable',
+    why:'“Harder” is not measurable, and no group is specified.',
+    fix:'Is the mean weekly homework time greater for Algebra 2 than for Statistics among students at our school?' },
+  { ok:false, m:`What is the typical student at our school like?`,
+    flaw:'No variable',
+    why:'“Like” could mean anything. The question does not name one characteristic to measure.',
+    fix:'What is the median number of hours of sleep per night for students at our school?' },
+  { ok:false, m:`Do students at our school own smartphones?`,
+    flaw:'No summary measure',
+    why:'As written, this is a yes/no question about each student. It does not ask for a proportion or any other summary.',
+    fix:'What proportion of students at our school own a smartphone?' }
+];
+
+/* ============================================================
+   Everything below is the engine
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const STOP = new Set(['the','a','an']);
+const ORDER = ['g','v','p'];
+
+function el(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs || {})) {
+    if (k === 'class') e.className = v;
+    else e.setAttribute(k, v);
+  }
+  kids.forEach(k => e.append(k));
+  return e;
+}
+function chip(c){
+  return el('span', { class:'chip t-' + c }, COMPONENTS[c].name);
+}
+
+function parse(m){
+  const parts = [], spans = [];
+  let wi = 0;
+  const push = (text, tag, opt) => {
+    if (tag && !opt) spans.push({ tag, text: text.trim() });
+    text.split(/(\s+)/).forEach(s => {
+      if (!s) return;
+      if (/^\s+$/.test(s)) parts.push({ kind:'space', text:s });
+      else if (/^[^\p{L}\p{N}]+$/u.test(s)) parts.push({ kind:'punct', text:s });
+      else parts.push({
+        kind:'word', text:s, tag, opt:!!opt, i:wi++,
+        neutral: STOP.has(s.toLowerCase().replace(/[^a-z]/g,''))
+      });
+    });
+  };
+  const re = /\[([gvp])(\?)?:([^\]]+)\]/g;
+  let last = 0, mt;
+  while ((mt = re.exec(m))) {
+    if (mt.index > last) push(m.slice(last, mt.index), null, false);
+    push(mt[3], mt[1], !!mt[2]);
+    last = re.lastIndex;
+  }
+  if (last < m.length) push(m.slice(last), null, false);
+  return { parts, spans };
+}
+
+/* ---------- state ---------- */
+const score = { j:0, jr:0, t:0, tr:0 };
+let deck = [], lastIdx = -1;
+const state = {
+  phase:'judge', q:null, parts:[], spans:[], tags:{}, pen:'g',
+  results:null, firstCheck:null, revealed:false, banner:null
+};
+
+function shuffle(a){
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function buildDeck(){
+  const incl = $('#inclNon').checked;
+  deck = shuffle(QUESTIONS.map((q,i) => i).filter(i => QUESTIONS[i].ok || incl));
+  if (deck.length > 1 && deck[deck.length-1] === lastIdx) {
+    [deck[0], deck[deck.length-1]] = [deck[deck.length-1], deck[0]];
+  }
+}
+function draw(){
+  if (!deck.length) buildDeck();
+  lastIdx = deck.pop();
+  const q = QUESTIONS[lastIdx];
+  const { parts, spans } = parse(q.m);
+  Object.assign(state, {
+    q, parts, spans, tags:{}, results:null, firstCheck:null,
+    revealed:false, banner:null,
+    phase: (q.ok && !$('#inclNon').checked) ? 'tag' : 'judge'
+  });
+  render();
+}
+
+/* ---------- actions ---------- */
+function judge(saidYes){
+  const q = state.q;
+  const right = saidYes === q.ok;
+  score.j++; if (right) score.jr++;
+  if (q.ok) {
+    state.banner = right
+      ? { cls:'ok',  html:'<strong>Correct.</strong> This is an investigative question. Now find its three parts.' }
+      : { cls:'bad', html:'<strong>Not quite.</strong> This one is a good investigative question. Find its three parts to see why.' };
+    state.phase = 'tag';
+  } else {
+    state.banner = right
+      ? { cls:'ok',  html:'<strong>Correct.</strong> This is not an investigative question.' }
+      : { cls:'bad', html:'<strong>Look again.</strong> This is not an investigative question.' };
+    state.phase = 'done';
+  }
+  render();
+}
+function tapWord(p){
+  if (state.tags[p.i] === state.pen) delete state.tags[p.i];
+  else state.tags[p.i] = state.pen;
+  state.results = null;
+  render();
+}
+function check(){
+  const res = {};
+  let all = true;
+  ORDER.forEach(c => {
+    const missing = state.parts.filter(p => p.kind==='word' && p.tag===c && !p.opt && !p.neutral && state.tags[p.i] !== c).length;
+    const extra   = state.parts.filter(p => p.kind==='word' && state.tags[p.i]===c && p.tag!==c && !p.neutral).length;
+    res[c] = { ok: !missing && !extra, missing, extra };
+    if (!res[c].ok) all = false;
+  });
+  state.results = res;
+  if (state.firstCheck === null) state.firstCheck = all;
+  if (all) finishTagging(false);
+  else render();
+}
+function reveal(){
+  state.tags = {};
+  state.parts.forEach(p => { if (p.kind==='word' && p.tag) state.tags[p.i] = p.tag; });
+  state.results = null;
+  state.revealed = true;
+  finishTagging(true);
+}
+function finishTagging(revealed){
+  score.t++;
+  if (!revealed && state.firstCheck) score.tr++;
+  state.phase = 'done';
+  render();
+}
+
+/* ---------- render ---------- */
+function renderQuestion(){
+  const qt = $('#qtext');
+  qt.replaceChildren();
+  const interactive = state.phase === 'tag';
+  const showTags = interactive || (state.phase === 'done' && state.q.ok);
+  state.parts.forEach(p => {
+    if (p.kind !== 'word') { qt.append(p.text); return; }
+    const t = showTags ? state.tags[p.i] : null;
+    const w = el(interactive ? 'button' : 'span', { class:'w' + (t ? ' t-' + t : '') }, p.text);
+    if (interactive) {
+      w.type = 'button';
+      w.setAttribute('aria-pressed', t ? 'true' : 'false');
+      w.addEventListener('click', () => tapWord(p));
+    }
+    if (state.results && showTags && t && !state.revealed) {
+      w.classList.add((p.neutral || p.tag === t) ? 'ok' : 'bad');
+    }
+    qt.append(w);
+  });
+}
+
+function renderPens(){
+  const box = $('#pens');
+  box.replaceChildren();
+  box.hidden = state.phase !== 'tag';
+  if (box.hidden) return;
+  ORDER.forEach(c => {
+    const b = el('button', { class:'pen', type:'button', 'aria-pressed': state.pen === c ? 'true' : 'false' },
+      chip(c), COMPONENTS[c].blurb);
+    b.addEventListener('click', () => { state.pen = c; render(); });
+    box.append(b);
+  });
+}
+
+function btn(label, cls, fn){
+  const b = el('button', { class:'btn ' + (cls || ''), type:'button' }, label);
+  b.addEventListener('click', fn);
+  return b;
+}
+
+function renderFeedback(){
+  const fb = $('#feedback');
+  fb.replaceChildren();
+  const q = state.q;
+
+  if (state.banner) {
+    const b = el('div', { class:'banner ' + state.banner.cls });
+    b.innerHTML = state.banner.html;
+    fb.append(b);
+  }
+
+  if (state.phase === 'tag' && state.results) {
+    const ul = el('ul', { class:'results' });
+    ORDER.forEach(c => {
+      const r = state.results[c];
+      const msgs = [];
+      if (r.missing) msgs.push('part of it is not highlighted yet');
+      if (r.extra)   msgs.push('some words highlighted this way do not belong');
+      ul.append(el('li', {},
+        el('span', { class:'mark ' + (r.ok ? 'ok-t' : 'bad-t') }, r.ok ? '✓' : '✗'),
+        el('span', {}, chip(c), ' ' + (r.ok ? 'is correct.' : msgs.join(' and ') + '.'))));
+    });
+    fb.append(ul);
+  }
+
+  if (state.phase === 'done') {
+    if (q.ok) {
+      if (state.revealed) {
+        fb.append(el('div', { class:'banner' }, 'Here is the answer key. Compare it with your thinking.'));
+      } else {
+        fb.append(el('div', { class:'banner ok' },
+          state.firstCheck ? 'All three parts found on the first check.' : 'All three parts found.'));
+      }
+      const key = el('div', { class:'key' });
+      ORDER.forEach(c => {
+        const txt = state.spans.filter(s => s.tag === c).map(s => s.text).join('; ');
+        key.append(chip(c), el('span', {}, txt));
+      });
+      fb.append(key);
+    } else {
+      fb.append(el('p', {}, el('span', { class:'flaw' }, q.flaw + ': '), q.why));
+      fb.append(el('p', { class:'fix' }, el('strong', {}, 'A better version: '), q.fix));
+    }
+  }
+}
+
+function renderActions(){
+  const a = $('#actions');
+  a.replaceChildren();
+  if (state.phase === 'judge') {
+    a.append(btn('Yes, it is investigative', '', () => judge(true)));
+    a.append(btn('No, it is not', '', () => judge(false)));
+    a.append(btn('Skip', 'quiet', draw));
+  } else if (state.phase === 'tag') {
+    a.append(btn('Check my parts', 'primary', check));
+    a.append(btn('Show the answer', 'quiet', reveal));
+    a.append(btn('Skip', 'quiet', draw));
+  } else {
+    a.append(btn('Next question', 'primary', draw));
+  }
+}
+
+function renderPrompt(){
+  const p = $('#prompt');
+  if (state.phase === 'judge') p.textContent = 'Is this an investigative question?';
+  else if (state.phase === 'tag') p.textContent = 'Pick a highlighter, then tap the words that belong to that part. Tap a word again to clear it.';
+  else p.textContent = '';
+}
+
+function renderScore(){
+  const s = $('#score');
+  s.replaceChildren();
+  s.append(`Judged right: ${score.jr}/${score.j}  ·  Parts right on first check: ${score.tr}/${score.t}`);
+  const r = el('button', { type:'button' }, 'Reset');
+  r.addEventListener('click', () => { score.j = score.jr = score.t = score.tr = 0; renderScore(); });
+  s.append(r);
+}
+
+function render(){
+  renderQuestion();
+  renderPrompt();
+  renderPens();
+  renderActions();
+  renderFeedback();
+  renderScore();
+}
+
+/* ---------- guide ---------- */
+function buildGuide(){
+  const g = $('#guide');
+  g.append(el('p', {}, 'A good investigative question:'));
+  const ul = el('ul');
+  [
+    'is about a group, not one individual',
+    'expects the answers to vary from one individual to the next',
+    'can be answered by collecting data',
+    'names something measurable',
+    'asks for a summary or a comparison'
+  ].forEach(t => ul.append(el('li', {}, t)));
+  g.append(ul);
+  ORDER.forEach(c => {
+    g.append(el('div', { class:'def' }, chip(c), el('span', {}, COMPONENTS[c].long)));
+  });
+  const ex = el('div', { class:'example' });
+  const { parts } = parse(`What is the [p:mean] [v:number of hours of sleep per night] for [g:students at our school]?`);
+  parts.forEach(p => {
+    if (p.kind === 'word' && p.tag) ex.append(el('span', { class:'w t-' + p.tag }, p.text));
+    else ex.append(p.text);
+  });
+  g.append(ex);
+}
+
+$('#inclNon').addEventListener('change', () => { buildDeck(); draw(); });
+buildGuide();
+buildDeck();
+draw();
+</script>
+</body>
+</html>
