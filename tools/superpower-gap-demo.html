@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Could a gap this big happen by chance?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --desk:#D9E1EA;
+  --panel:#EEF2F7;
+  --panel-edge:#BCC9D9;
+  --ink:#17263B;
+  --ink-soft:#44556C;
+  --accent:#1F4E9E;
+  --accent-ink:#FFFFFF;
+  --dot:#2D4F86;
+  --extreme:#B3202A;
+  --shade:rgba(179,32,42,.10);
+  --grid:#B4C2D3;
+  --field:#FFFFFF;
+  --focus:#1F4E9E;
+  /* index cards stay paper in both themes */
+  --paper:#FFFFFF;
+  --paper-hi:#FFF1A6;
+  --paper-edge:#AFC0D6;
+  --rule-blue:#B5CBE8;
+  --rule-red:#D4574E;
+  --mark:#1B3A8C;
+  --back-a:#3F5E8E;
+  --back-b:#375483;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --desk:#111925;
+    --panel:#1A2535;
+    --panel-edge:#2C3B51;
+    --ink:#E8EEF6;
+    --ink-soft:#A9B7CA;
+    --accent:#86AEF7;
+    --accent-ink:#0E1A2C;
+    --dot:#8DB2F2;
+    --extreme:#FF8080;
+    --shade:rgba(255,128,128,.15);
+    --grid:#33445D;
+    --field:#121B29;
+    --focus:#86AEF7;
+  }
+}
+:root[data-theme="dark"]{
+  --desk:#111925;
+  --panel:#1A2535;
+  --panel-edge:#2C3B51;
+  --ink:#E8EEF6;
+  --ink-soft:#A9B7CA;
+  --accent:#86AEF7;
+  --accent-ink:#0E1A2C;
+  --dot:#8DB2F2;
+  --extreme:#FF8080;
+  --shade:rgba(255,128,128,.15);
+  --grid:#33445D;
+  --field:#121B29;
+  --focus:#86AEF7;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;
+  background:var(--desk);
+  color:var(--ink);
+  font-family:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  font-size:17px;
+  line-height:1.45;
+}
+.wrap{max-width:1280px;margin:0 auto;padding:clamp(14px,2.4vw,28px)}
+h1{font-size:clamp(26px,3.4vw,38px);line-height:1.12;margin:0 0 8px;letter-spacing:-.01em}
+h2{font-size:20px;line-height:1.2;margin:0 0 4px}
+p{margin:0}
+.lede{max-width:60ch;color:var(--ink-soft)}
+.top{display:flex;flex-wrap:wrap;gap:18px 40px;align-items:flex-end;justify-content:space-between;margin-bottom:18px}
+.scenario{min-width:min(100%,330px)}
+.scenario label,.field label{display:block;font-weight:700;margin-bottom:4px}
+select,input[type="text"],input[type="number"]{
+  font:inherit;color:var(--ink);background:var(--field);
+  border:1.5px solid var(--panel-edge);border-radius:8px;padding:9px 10px;width:100%;min-height:44px;
+}
+.hint{font-size:14.5px;color:var(--ink-soft);margin-top:6px}
+.custom{
+  background:var(--panel);border:1.5px solid var(--panel-edge);border-radius:14px;
+  padding:16px;margin-bottom:18px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 14px;
+}
+.custom[hidden]{display:none}
+.custom .wide{grid-column:1/-1}
+.custom .msg{color:var(--extreme);font-weight:700;min-height:1.4em}
+.hyp{
+  background:var(--panel);border:1.5px solid var(--panel-edge);border-left:6px solid var(--accent);
+  border-radius:14px;padding:14px 18px;margin-bottom:18px;
+}
+.hyp .hq{font-weight:700;margin-bottom:8px}
+.hyp .hrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 24px}
+@media (max-width:700px){.hyp .hrow{grid-template-columns:minmax(0,1fr)}}
+.hyp .hnote{font-size:14.5px;color:var(--ink-soft);margin-top:8px}
+.hyp sub{font-size:.72em}
+.board{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){.board{grid-template-columns:minmax(0,1fr)}}
+.panel{
+  background:var(--panel);border:1.5px solid var(--panel-edge);border-radius:14px;
+  padding:clamp(14px,2vw,22px);margin-bottom:18px;
+}
+.board > section > .panel:last-child{margin-bottom:0}
+.panel .sub{color:var(--ink-soft);font-size:15.5px;margin-bottom:14px;max-width:62ch}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:560px){.pair{grid-template-columns:minmax(0,1fr)}}
+.ghead{display:flex;flex-direction:column;margin-bottom:8px;min-height:3.1em}
+.gname{font-weight:700;font-size:18px}
+.gmeta{font-size:15px;color:var(--ink-soft)}
+.cards{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:4px;container-type:inline-size}
+.cards.dense{gap:2px}
+.slot{aspect-ratio:5/3;border:1.5px dashed var(--panel-edge);border-radius:3px}
+.card{aspect-ratio:5/3;perspective:700px}
+.inner{
+  position:relative;width:100%;height:100%;transform-style:preserve-3d;
+  transition:transform .55s cubic-bezier(.3,.7,.2,1);
+  transition-delay:calc(var(--i) * 12ms);
+}
+.card.down .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:3px;border:1px solid var(--paper-edge);overflow:hidden}
+.front{
+  background:
+    linear-gradient(var(--rule-red),var(--rule-red)) 0 26%/100% 1.5px no-repeat,
+    linear-gradient(var(--rule-blue),var(--rule-blue)) 0 50%/100% 1px no-repeat,
+    linear-gradient(var(--rule-blue),var(--rule-blue)) 0 72%/100% 1px no-repeat,
+    linear-gradient(var(--rule-blue),var(--rule-blue)) 0 94%/100% 1px no-repeat,
+    var(--paper);
+  display:flex;align-items:center;justify-content:center;
+}
+.card.f .front{
+  background:
+    linear-gradient(var(--rule-red),var(--rule-red)) 0 26%/100% 1.5px no-repeat,
+    linear-gradient(var(--rule-blue),var(--rule-blue)) 0 50%/100% 1px no-repeat,
+    linear-gradient(var(--rule-blue),var(--rule-blue)) 0 72%/100% 1px no-repeat,
+    linear-gradient(var(--rule-blue),var(--rule-blue)) 0 94%/100% 1px no-repeat,
+    var(--paper-hi);
+}
+.back{
+  transform:rotateY(180deg);
+  background:repeating-linear-gradient(45deg,var(--back-a) 0 5px,var(--back-b) 5px 10px);
+  border-color:#2D456C;
+}
+.mark{
+  font-family:"Permanent Marker","Marker Felt","Bradley Hand","Comic Sans MS",cursive;
+  color:var(--mark);line-height:1;
+  font-size:calc(100cqw / var(--cols) * .5);
+  transform:translateY(8%) rotate(-4deg);
+}
+.cards.nomark .mark{display:none}
+@keyframes deal{
+  from{opacity:0;transform:translate(-5cqw,-14px) rotate(-9deg) scale(.88)}
+  to{opacity:1;transform:none}
+}
+.card.deal{animation:deal .36s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 12ms)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:14px;font-size:15px;color:var(--ink-soft)}
+.chip{display:inline-block;width:30px;aspect-ratio:5/3;border:1px solid var(--paper-edge);border-radius:3px;background:var(--paper);vertical-align:middle}
+.chip.f{background:var(--paper-hi);position:relative}
+.chip.f::after{content:attr(data-mark);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Permanent Marker","Marker Felt","Comic Sans MS",cursive;color:var(--mark);font-size:15px}
+.gap{margin-top:14px;font-size:18px;font-weight:700;min-height:1.5em}
+.gap span{font-weight:400;color:var(--ink-soft)}
+.bingo{
+  display:inline-flex;align-items:baseline;gap:12px;margin-top:10px;
+  border:4px solid var(--extreme);border-radius:10px;padding:6px 20px;
+  background:var(--field);color:var(--extreme);
+  transform:rotate(-3deg);animation:stamp .45s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.bingo[hidden]{display:none}
+.bingo b{font-family:"Permanent Marker","Marker Felt","Comic Sans MS",cursive;font-size:clamp(34px,4.2vw,52px);line-height:1.1;font-weight:400;letter-spacing:.02em}
+.bingo span{font-size:16px;font-weight:700}
+@keyframes stamp{from{opacity:0;transform:rotate(-3deg) scale(1.8)}to{opacity:1;transform:rotate(-3deg) scale(1)}}
+.plothead{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px 16px;margin-bottom:4px}
+.hiddenbox{background:var(--field);border:2px dashed var(--panel-edge);border-radius:12px;padding:26px 20px;text-align:center;margin-bottom:14px}
+.hiddenbox[hidden]{display:none}
+.hiddenbox p{margin:0 auto;max-width:36ch}
+.hiddenbox .tally{font-size:20px;font-weight:700;margin-top:12px}
+#plotArea[hidden]{display:none}
+.listview{font-size:15px;color:var(--ink);background:var(--field);border:1.5px solid var(--panel-edge);border-radius:8px;min-height:90px;max-height:220px;overflow:auto;padding:8px 10px;white-space:pre-wrap;line-height:1.7;font-variant-numeric:tabular-nums}
+.listview:empty::before{content:"No results yet.";color:var(--ink-soft)}
+.listview .hit{color:var(--extreme);font-weight:700}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:16px}
+button{
+  font:inherit;font-weight:700;cursor:pointer;
+  border-radius:10px;border:1.5px solid var(--accent);
+  background:transparent;color:var(--accent);
+  padding:10px 16px;min-height:44px;
+}
+button:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+button.primary{
+  background:var(--accent);color:var(--accent-ink);
+  font-size:21px;padding:14px 26px;min-height:58px;min-width:min(100%,290px);
+}
+button.primary:hover{background:var(--accent);filter:brightness(1.08)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.check{display:flex;align-items:center;gap:8px;font-size:16px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.tip{font-size:14.5px;color:var(--ink-soft);margin-top:10px}
+.plotbox{overflow-x:auto}
+svg{display:block;width:100%;height:auto;min-width:420px}
+svg text{font-family:inherit;fill:var(--ink)}
+.axis-t{font-size:13.5px;fill:var(--ink-soft)}
+.obs-t{font-size:14.5px;font-weight:700;fill:var(--extreme)}
+.empty-t{font-size:17px;fill:var(--ink-soft)}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px;color:var(--ink-soft);margin:6px 0 14px}
+.key i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--field);border:1.5px solid var(--panel-edge);border-radius:10px;padding:10px 12px}
+.stat .num{display:block;font-size:30px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .lab{display:block;font-size:14px;color:var(--ink-soft);line-height:1.25;margin-top:2px}
+.stat.p .num{color:var(--extreme)}
+.sentence{background:var(--field);border-left:5px solid var(--extreme);border-radius:6px;padding:10px 14px;margin-bottom:14px}
+.sentence[hidden]{display:none}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.row.add{align-items:flex-end}
+.row .field{flex:1 1 170px}
+.row .field.small{flex:0 1 150px}
+details{margin-top:6px}
+summary{cursor:pointer;font-weight:700;padding:6px 0}
+textarea{
+  font:inherit;font-size:15px;color:var(--ink);background:var(--field);
+  border:1.5px solid var(--panel-edge);border-radius:8px;width:100%;min-height:90px;padding:8px 10px;resize:vertical;
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){
+  .inner{transition:none}
+  .card.deal{animation:none}
+  .bingo{animation:none}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1>Could a gap this big happen by chance?</h1>
+      <p class="lede">Pretend preference has nothing to do with group. Shuffle the cards, deal them into two stacks, and see how large a gap luck alone can make.</p>
+    </div>
+    <div class="scenario">
+      <label for="scenarioSel">Scenario</label>
+      <select id="scenarioSel"></select>
+      <p class="hint" id="scenarioHint">These are example numbers. Choose “Your own data” to enter real counts.</p>
+    </div>
+  </header>
+
+  <section class="custom" id="customBox" hidden aria-label="Enter your own data">
+    <div class="field wide"><label for="cPref">Superpower or preference</label><input type="text" id="cPref" maxlength="24" autocomplete="off"></div>
+    <div class="field"><label for="cAName">First group</label><input type="text" id="cAName" maxlength="20" autocomplete="off"></div>
+    <div class="field"><label for="cAN">Students in first group</label><input type="number" id="cAN" min="1" max="120" step="1" inputmode="numeric"></div>
+    <div class="field"><label for="cAX">Of those, how many prefer it</label><input type="number" id="cAX" min="0" max="120" step="1" inputmode="numeric"></div>
+    <div class="field"><label for="cBName">Second group</label><input type="text" id="cBName" maxlength="20" autocomplete="off"></div>
+    <div class="field"><label for="cBN">Students in second group</label><input type="number" id="cBN" min="1" max="120" step="1" inputmode="numeric"></div>
+    <div class="field"><label for="cBX">Of those, how many prefer it</label><input type="number" id="cBX" min="0" max="120" step="1" inputmode="numeric"></div>
+    <p class="msg wide" id="customMsg" role="status"></p>
+  </section>
+
+  <section class="hyp" id="hyp" aria-label="Question and hypotheses">
+    <p class="hq" id="hypQ"></p>
+    <div class="hrow">
+      <p id="hypH0"></p>
+      <p id="hypHa"></p>
+    </div>
+    <p class="hnote" id="hypNote"></p>
+  </section>
+
+  <div class="board">
+    <section aria-label="Cards">
+      <div class="panel" id="observedPanel">
+        <h2>What we observed</h2>
+        <p class="sub" id="obsSub"></p>
+        <div class="pair">
+          <div id="obsA"></div>
+          <div id="obsB"></div>
+        </div>
+        <p class="gap" id="obsGap"></p>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="panel" id="shufflePanel">
+        <h2>After shuffling</h2>
+        <p class="sub" id="shufSub"></p>
+        <div class="pair">
+          <div id="simA"></div>
+          <div id="simB"></div>
+        </div>
+        <p class="gap" id="simGap"></p>
+        <div class="bingo" id="bingo" role="status" hidden><b>BINGO!</b><span>as extreme as ours</span></div>
+        <div class="actions">
+          <button type="button" class="primary" id="primary">Shuffle and deal</button>
+          <label class="check"><input type="checkbox" id="auto"> Turn cards over automatically</label>
+        </div>
+        <p class="tip">Tip: press the space bar to move to the next step.</p>
+      </div>
+    </section>
+
+    <section aria-label="Results">
+      <div class="panel">
+        <div class="plothead">
+          <h2>Gaps from many shuffles</h2>
+          <button type="button" id="togglePlot" aria-expanded="false" aria-controls="plotArea">Show the plot</button>
+        </div>
+        <div class="hiddenbox" id="hiddenBox">
+          <p>The plot is hidden. Play a few rounds and call out BINGO when your gap is as extreme as ours. Then show the plot.</p>
+          <p class="tally" id="tally"></p>
+        </div>
+        <div id="plotArea" hidden>
+        <p class="sub">Each dot is one shuffle. The red line marks the gap we actually observed.</p>
+        <div class="plotbox"><svg id="plot" viewBox="0 0 720 340" role="img" aria-label="Dot plot of shuffle results"></svg></div>
+        <div class="key">
+          <span><i style="background:var(--extreme)"></i>as extreme as ours (counted)</span>
+          <span><i style="background:var(--dot)"></i>not as extreme</span>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span class="num" id="statN">0</span><span class="lab">shuffles recorded</span></div>
+          <div class="stat"><span class="num" id="statK">0</span><span class="lab">as extreme as ours</span></div>
+          <div class="stat p"><span class="num" id="statP">&ndash;</span><span class="lab">estimated p-value</span></div>
+        </div>
+
+        <div class="sentence" id="sentence" hidden></div>
+
+        <div class="row">
+          <label class="check"><input type="checkbox" id="showSentence"> Show the sentence that explains the share</label>
+        </div>
+        </div>
+
+        <div class="row field" style="display:block">
+          <label for="tailSel" style="font-weight:700;display:block;margin-bottom:4px">Count a shuffle if its gap is</label>
+          <select id="tailSel">
+            <option value="two">as far from zero as ours, in either direction</option>
+            <option value="high">as high as ours or higher</option>
+            <option value="low">as low as ours or lower</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button type="button" id="add10">Add 10 shuffles</button>
+          <button type="button" id="add100">Add 100</button>
+          <button type="button" id="add1000">Add 1,000</button>
+          <button type="button" id="undo">Undo last</button>
+          <button type="button" id="clear">Clear results</button>
+        </div>
+
+        <div class="row add">
+          <div class="field small">
+            <label for="manual" style="font-weight:700;display:block;margin-bottom:4px">Add a result you were given</label>
+            <input type="text" id="manual" inputmode="decimal" placeholder="for example 5 or &minus;10" autocomplete="off">
+          </div>
+          <button type="button" id="addManual">Add result</button>
+          <span class="hint" style="margin:0 0 10px">in percentage points</span>
+        </div>
+
+        <details>
+          <summary>Results list</summary>
+          <div class="row" style="margin-top:6px">
+            <label for="sep" style="font-weight:700">Separate with</label>
+            <select id="sep" style="width:auto"><option value="comma">commas</option><option value="nl">new lines</option></select>
+            <button type="button" id="copy">Copy list</button>
+          </div>
+          <div id="listView" class="listview" tabindex="0" role="group" aria-label="Results in percentage points, with bingo values in red"></div>
+          <textarea id="list" class="sr" readonly aria-hidden="true" tabindex="-1"></textarea>
+          <p class="hint" style="margin-top:6px">Red numbers are bingos, the gaps as extreme as ours.</p>
+        </details>
+      </div>
+    </section>
+  </div>
+</main>
+<div class="sr" id="live" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+  var MINUS = '\u2212';
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  var PRESETS = {
+    flight20:     {label:'Flight, small gap: 5 of 20 vs 7 of 20', pref:'Flight',
+                   A:{name:'Male',n:20,x:5},  B:{name:'Female',n:20,x:7}},
+    telepathy:    {label:'Telepathy, medium gap: 5 of 20 vs 10 of 20', pref:'Telepathy',
+                   A:{name:'Male',n:20,x:5},  B:{name:'Female',n:20,x:10}},
+    invisibility: {label:'Invisibility, large gap: 4 of 20 vs 12 of 20', pref:'Invisibility',
+                   A:{name:'Male',n:20,x:4},  B:{name:'Female',n:20,x:12}}
+  };
+
+  var sc = clone(PRESETS.flight20);
+  var results = [];
+  var deal = null;          // {a:[], b:[], d:number, revealed:boolean}
+  var phase = 'idle';       // idle | dealt | shown
+  var tail = 'two';
+  var lastD = null;
+  var autoTimer = null;
+  var plotShown = false;
+
+  function $(id){ return document.getElementById(id); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function sum(a){ var s = 0; for (var i = 0; i < a.length; i++) s += a[i]; return s; }
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  function pct(p){
+    var v = Math.round(p * 1000) / 10;
+    return (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)) + '%';
+  }
+  function pts(d){
+    var v = Math.round(d * 1000) / 10;
+    var s = Math.abs(v);
+    var t = (s % 1 === 0) ? s.toFixed(0) : s.toFixed(1);
+    return (v > 0 ? '+' : v < 0 ? MINUS : '') + t;
+  }
+  function mark(){
+    var c = (sc.pref || '').trim().charAt(0).toUpperCase();
+    return c || 'F';
+  }
+  function prefLower(){ return (sc.pref || 'this superpower').trim().toLowerCase(); }
+  function obsGap(){ return sc.B.x / sc.B.n - sc.A.x / sc.A.n; }
+
+  function isExtreme(d){
+    var eps = 1e-9, o = obsGap();
+    if (tail === 'two')  return Math.abs(d) + eps >= Math.abs(o);
+    if (tail === 'high') return d + eps >= o;
+    return d - eps <= o;
+  }
+
+  /* ---------- simulation ---------- */
+  function dealOnce(){
+    var N = sc.A.n + sc.B.n, T = sc.A.x + sc.B.x, deck = [], i;
+    for (i = 0; i < N; i++) deck.push(i < T ? 1 : 0);
+    for (i = N - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+    }
+    var a = deck.slice(0, sc.A.n), b = deck.slice(sc.A.n);
+    return { a:a, b:b, d: sum(b) / sc.B.n - sum(a) / sc.A.n, revealed:false };
+  }
+  function simulateMany(k){
+    var nA = sc.A.n, nB = sc.B.n, N = nA + nB, T = sc.A.x + sc.B.x;
+    var deck = new Uint8Array(N), i, r;
+    for (i = 0; i < T; i++) deck[i] = 1;
+    for (r = 0; r < k; r++){
+      for (i = 0; i < nA; i++){
+        var j = i + Math.floor(Math.random() * (N - i));
+        var t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+      }
+      var xa = 0;
+      for (i = 0; i < nA; i++) xa += deck[i];
+      results.push((T - xa) / nB - xa / nA);
+    }
+    lastD = results.length ? results[results.length - 1] : null;
+  }
+
+  /* ---------- cards ---------- */
+  function colsFor(n){
+    if (n <= 40) return Math.max(5, Math.min(10, n));
+    return Math.ceil(Math.sqrt(n * 2));
+  }
+  function observedArr(G){
+    var arr = [], i;
+    for (i = 0; i < G.n; i++) arr.push(i < G.x ? 1 : 0);
+    return arr;
+  }
+  function cardsHTML(arr, down, dealt){
+    var m = esc(mark());
+    var cols = colsFor(arr.length);
+    var cls = 'cards' + (arr.length > 60 ? ' dense' : '') + (cols > 18 ? ' nomark' : '');
+    var out = '<div class="' + cls + '" style="--cols:' + cols + '">';
+    for (var i = 0; i < arr.length; i++){
+      out += '<div class="card' + (arr[i] ? ' f' : '') + (down ? ' down' : '') + (dealt ? ' deal' : '') +
+             '" style="--i:' + i + '"><div class="inner"><div class="face front"><span class="mark">' +
+             (arr[i] ? m : '') + '</span></div><div class="face back"></div></div></div>';
+    }
+    return out + '</div>';
+  }
+  function slotsHTML(n){
+    var cols = colsFor(n);
+    var out = '<div class="cards' + (n > 60 ? ' dense' : '') + '" style="--cols:' + cols + '">';
+    for (var i = 0; i < n; i++) out += '<div class="slot"></div>';
+    return out + '</div>';
+  }
+  function headHTML(name, metaId, meta){
+    return '<div class="ghead"><span class="gname">' + esc(name) + '</span><span class="gmeta" id="' + metaId + '">' + meta + '</span></div>';
+  }
+
+  function renderObserved(){
+    var A = sc.A, B = sc.B, m = mark();
+    $('obsSub').textContent = 'The real groups. A ' + m + ' marks a student who prefers ' + prefLower() + '. A blank card means they do not.';
+    $('obsA').innerHTML = headHTML(A.name, 'obsMetaA', A.x + ' of ' + A.n + ' marked ' + esc(m) + ', ' + pct(A.x / A.n)) + cardsHTML(observedArr(A), false, false);
+    $('obsB').innerHTML = headHTML(B.name, 'obsMetaB', B.x + ' of ' + B.n + ' marked ' + esc(m) + ', ' + pct(B.x / B.n)) + cardsHTML(observedArr(B), false, false);
+    $('obsGap').innerHTML = 'Observed gap: ' + pts(obsGap()) + ' points <span>(' + esc(B.name) + ' percent minus ' + esc(A.name) + ' percent)</span>';
+    $('legend').innerHTML = '<span class="chip f" data-mark="' + esc(m) + '"></span> prefers ' + esc(prefLower()) + ' <span class="chip"></span> does not';
+    $('shufSub').textContent = 'All ' + (A.n + B.n) + ' cards go into one pile, get shuffled, and are dealt back into stacks of ' + A.n + ' and ' + B.n + '.';
+  }
+
+  function renderStacks(animateDeal){
+    var m = mark();
+    ['A','B'].forEach(function(g){
+      var G = sc[g], el = $('sim' + g);
+      if (!deal){
+        el.innerHTML = headHTML(G.name, 'simMeta' + g, G.n + ' cards waiting') + slotsHTML(G.n);
+        return;
+      }
+      var arr = g === 'A' ? deal.a : deal.b;
+      var meta = deal.revealed ? (sum(arr) + ' of ' + G.n + ' marked ' + esc(m) + ', ' + pct(sum(arr) / G.n)) : (G.n + ' cards, face down');
+      el.innerHTML = headHTML(G.name, 'simMeta' + g, meta) + cardsHTML(arr, !deal.revealed, !!animateDeal);
+    });
+    updateSimGap();
+  }
+  function updateSimGap(){
+    var el = $('simGap');
+    if (deal && deal.revealed){
+      el.innerHTML = 'This shuffle: ' + pts(deal.d) + ' points <span>(observed was ' + pts(obsGap()) + ')</span>';
+    } else {
+      el.innerHTML = '';
+    }
+    $('bingo').hidden = !(deal && deal.revealed && isExtreme(deal.d));
+  }
+
+  function setPrimary(){
+    var b = $('primary');
+    b.textContent = phase === 'dealt' ? 'Turn the cards over' : (phase === 'shown' ? 'Shuffle and deal again' : 'Shuffle and deal');
+  }
+
+  function doDeal(){
+    clearTimeout(autoTimer);
+    deal = dealOnce();
+    phase = 'dealt';
+    renderStacks(true);
+    setPrimary();
+    if ($('auto').checked) autoTimer = setTimeout(reveal, reduce ? 0 : 1000);
+  }
+
+  function reveal(){
+    if (!deal || deal.revealed) return;
+    clearTimeout(autoTimer);
+    var tok = deal;
+    deal.revealed = true;
+    phase = 'shown';
+    var cards = document.querySelectorAll('#simA .card, #simB .card');
+    for (var i = 0; i < cards.length; i++) cards[i].classList.remove('down');
+    results.push(deal.d);
+    lastD = deal.d;
+    setPrimary();
+    setTimeout(function(){
+      if (deal === tok){
+        var m = mark();
+        ['A','B'].forEach(function(g){
+          var arr = g === 'A' ? tok.a : tok.b, G = sc[g], e = $('simMeta' + g);
+          if (e) e.textContent = sum(arr) + ' of ' + G.n + ' marked ' + m + ', ' + pct(sum(arr) / G.n);
+        });
+        updateSimGap();
+      }
+      renderPlot();
+      renderReadout();
+      announce('Shuffle result: ' + sc.B.name + ' minus ' + sc.A.name + ' is ' + pts(tok.d) + ' percentage points.' + (isExtreme(tok.d) ? ' Bingo! As extreme as the observed gap.' : ''));
+    }, reduce ? 0 : 650);
+  }
+
+  function primary(){
+    if (phase === 'dealt') reveal(); else doDeal();
+  }
+
+  /* ---------- plot ---------- */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function renderPlot(){
+    var svg = $('plot');
+    var W = 720, H = 340, L = 26, Rm = 26, T = 38, Bm = 62;
+    var pw = W - L - Rm, ph = H - T - Bm, base = T + ph;
+    var o = obsGap(), i;
+    var maxAbs = Math.abs(o);
+    for (i = 0; i < results.length; i++){ var a = Math.abs(results[i]); if (a > maxAbs) maxAbs = a; }
+    var R = Math.max(0.3, Math.ceil((maxAbs + 0.02) * 10 - 1e-9) / 10);
+    function xs(v){ return L + (v + R) / (2 * R) * pw; }
+
+    var counts = {}, ext = {}, maxC = 0, keys;
+    for (i = 0; i < results.length; i++){
+      var d = results[i], k = Math.round(d * 100);
+      counts[k] = (counts[k] || 0) + 1;
+      if (counts[k] > maxC) maxC = counts[k];
+      if (isExtreme(d)) ext[k] = (ext[k] || 0) + 1;
+    }
+    keys = Object.keys(counts).map(Number);
+
+    var binPx = pw / (2 * R * 100);
+    var r = Math.min(9, binPx / 2 - 0.4, maxC ? ph / (2 * maxC) : 9);
+    var barMode = r < 2.4;
+
+    var s = '';
+    // tail shading
+    var ao = Math.abs(o);
+    if (tail === 'two'){
+      s += '<rect x="' + L + '" y="' + T + '" width="' + (xs(-ao) - L) + '" height="' + ph + '" style="fill:var(--shade)"/>';
+      s += '<rect x="' + xs(ao) + '" y="' + T + '" width="' + (L + pw - xs(ao)) + '" height="' + ph + '" style="fill:var(--shade)"/>';
+    } else if (tail === 'high'){
+      s += '<rect x="' + xs(o) + '" y="' + T + '" width="' + (L + pw - xs(o)) + '" height="' + ph + '" style="fill:var(--shade)"/>';
+    } else {
+      s += '<rect x="' + L + '" y="' + T + '" width="' + (xs(o) - L) + '" height="' + ph + '" style="fill:var(--shade)"/>';
+    }
+    // grid ticks + labels
+    var step = R <= 0.3 ? 0.05 : 0.1, nt = Math.round(2 * R / step), ti;
+    for (ti = 0; ti <= nt; ti++){
+      var vv = Math.round((-R + ti * step) * 100) / 100, x = xs(vv);
+      var zero = Math.abs(vv) < 1e-9;
+      s += '<line x1="' + x + '" x2="' + x + '" y1="' + T + '" y2="' + base + '" style="stroke:var(--grid);stroke-width:' + (zero ? 1.6 : 0.6) + '"/>';
+      var lab = Math.round(vv * 100);
+      s += '<text class="axis-t" x="' + x + '" y="' + (base + 20) + '" text-anchor="middle">' + (lab < 0 ? MINUS + Math.abs(lab) : lab) + '</text>';
+    }
+    s += '<line x1="' + L + '" x2="' + (L + pw) + '" y1="' + base + '" y2="' + base + '" style="stroke:var(--ink-soft);stroke-width:1.4"/>';
+    s += '<text class="axis-t" x="' + (W / 2) + '" y="' + (H - 12) + '" text-anchor="middle">Gap in the percent of ' + esc(mark()) + ' cards, ' + esc(sc.B.name) + ' stack minus ' + esc(sc.A.name) + ' stack (percentage points)</text>';
+
+    // data
+    var kk, c, e, j, cx, cy;
+    if (barMode){
+      var bw = Math.max(1.5, binPx * 0.9), maxH = ph - 8;
+      for (i = 0; i < keys.length; i++){
+        kk = keys[i]; c = counts[kk]; e = ext[kk] || 0;
+        cx = xs(kk / 100);
+        var hAll = c / maxC * maxH, hExt = e / maxC * maxH;
+        s += '<rect x="' + (cx - bw / 2) + '" y="' + (base - hAll) + '" width="' + bw + '" height="' + (hAll - hExt) + '" style="fill:var(--dot)"/>';
+        if (e) s += '<rect x="' + (cx - bw / 2) + '" y="' + (base - hExt) + '" width="' + bw + '" height="' + hExt + '" style="fill:var(--extreme)"/>';
+      }
+    } else {
+      for (i = 0; i < keys.length; i++){
+        kk = keys[i]; c = counts[kk]; e = ext[kk] || 0;
+        cx = xs(kk / 100);
+        for (j = 0; j < c; j++){
+          cy = base - r - j * 2 * r - 1;
+          s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" style="fill:' + (j >= c - e ? 'var(--extreme)' : 'var(--dot)') + '"/>';
+        }
+      }
+      if (lastD !== null && results.length){
+        var lk = Math.round(lastD * 100), lc = counts[lk] || 1;
+        s += '<circle cx="' + xs(lk / 100) + '" cy="' + (base - r - (lc - 1) * 2 * r - 1) + '" r="' + (r + 2.5) + '" style="fill:none;stroke:var(--ink);stroke-width:2"/>';
+      }
+    }
+
+    // observed marker(s)
+    s += '<line x1="' + xs(o) + '" x2="' + xs(o) + '" y1="' + (T - 8) + '" y2="' + base + '" style="stroke:var(--extreme);stroke-width:2.6"/>';
+    if (tail === 'two' && ao > 1e-9){
+      s += '<line x1="' + xs(-o) + '" x2="' + xs(-o) + '" y1="' + T + '" y2="' + base + '" style="stroke:var(--extreme);stroke-width:2" stroke-dasharray="6 5"/>';
+    }
+    var anchor = xs(o) > W - 110 ? 'end' : (xs(o) < 110 ? 'start' : 'middle');
+    s += '<text class="obs-t" x="' + xs(o) + '" y="' + (T - 14) + '" text-anchor="' + anchor + '">Our gap: ' + pts(o) + '</text>';
+
+    if (!results.length){
+      s += '<text class="empty-t" x="' + (W / 2) + '" y="' + (T + ph / 2) + '" text-anchor="middle">Shuffle and deal to place the first dot</text>';
+    }
+    svg.innerHTML = s;
+    var k2 = 0;
+    for (i = 0; i < keys.length; i++) k2 += ext[keys[i]] || 0;
+    svg.setAttribute('aria-label', results.length + ' shuffle results plotted; ' + k2 + ' are as extreme as the observed gap of ' + pts(o) + ' points.');
+  }
+
+  function renderReadout(){
+    var N = results.length, k = 0, i;
+    for (i = 0; i < N; i++) if (isExtreme(results[i])) k++;
+    $('statN').textContent = N.toLocaleString();
+    $('statK').textContent = k.toLocaleString();
+    $('statP').textContent = N ? (k / N).toFixed(3) : '\u2013';
+    $('tally').textContent = N ? ('Shuffles so far: ' + N.toLocaleString() + '. Bingos: ' + k.toLocaleString() + '.') : 'No shuffles yet.';
+
+    var box = $('sentence');
+    if (N){
+      var how = tail === 'two' ? 'at least this far from zero, in either direction,' : (tail === 'high' ? 'at least this high' : 'at least this low');
+      box.textContent = 'Assuming ' + prefLower() + ' preference is unrelated to group, a gap ' + how + ' showed up in ' + k.toLocaleString() + ' of ' + N.toLocaleString() + ' shuffles, a share of ' + (k / N).toFixed(3) + '.';
+    } else {
+      box.textContent = 'Record some shuffles to see the sentence.';
+    }
+    box.hidden = !$('showSentence').checked;
+
+    var sep = $('sep').value === 'nl' ? '\n' : ', ';
+    var vals = results.map(function(d){ var x = Math.round(d * 10000) / 100; return (x === 0 ? 0 : x); });
+    $('list').value = vals.join(sep);
+    var listHTML = '';
+    for (var vi = 0; vi < results.length; vi++){
+      listHTML += (vi ? esc(sep) : '') + (isExtreme(results[vi]) ? '<span class="hit">' + vals[vi] + '</span>' : String(vals[vi]));
+    }
+    $('listView').innerHTML = listHTML;
+  }
+
+  function renderHyp(){
+    var A = esc(sc.A.name), B = esc(sc.B.name), p = esc(prefLower());
+    var q, rel, relText;
+    if (tail === 'two'){
+      q = 'Does the proportion who prefer ' + p + ' differ between ' + B + ' and ' + A + ' students?';
+      rel = '\u2260'; relText = 'The two proportions are different.';
+    } else if (tail === 'high'){
+      q = 'Is the proportion who prefer ' + p + ' higher for ' + B + ' than for ' + A + ' students?';
+      rel = '&gt;'; relText = 'The proportion is higher for ' + B + '.';
+    } else {
+      q = 'Is the proportion who prefer ' + p + ' lower for ' + B + ' than for ' + A + ' students?';
+      rel = '&lt;'; relText = 'The proportion is lower for ' + B + '.';
+    }
+    $('hypQ').innerHTML = 'Investigative question: ' + q;
+    $('hypH0').innerHTML = '<b>H<sub>0</sub>:</b> p<sub>' + B + '</sub> = p<sub>' + A + '</sub>. The proportion who prefer ' + p + ' is the same in both groups.';
+    $('hypHa').innerHTML = '<b>H<sub>a</sub>:</b> p<sub>' + B + '</sub> ' + rel + ' p<sub>' + A + '</sub>. ' + relText;
+    $('hypNote').textContent = 'Here p stands for the population proportion each group represents. These students are one class, not a random sample, so any conclusion applies only to similar students.';
+  }
+
+  function applyPlot(){
+    $('plotArea').hidden = !plotShown;
+    $('hiddenBox').hidden = plotShown;
+    var b = $('togglePlot');
+    b.textContent = plotShown ? 'Hide the plot' : 'Show the plot';
+    b.setAttribute('aria-expanded', plotShown ? 'true' : 'false');
+    if (plotShown){ renderPlot(); renderReadout(); }
+  }
+
+  function renderAll(){
+    renderHyp();
+    renderObserved();
+    renderStacks(false);
+    setPrimary();
+    renderPlot();
+    renderReadout();
+    applyPlot();
+  }
+  function announce(t){ $('live').textContent = t; }
+
+  function resetAll(){
+    clearTimeout(autoTimer);
+    results = []; deal = null; phase = 'idle'; lastD = null; plotShown = false;
+    renderAll();
+  }
+
+  /* ---------- results controls ---------- */
+  function addMany(k){ simulateMany(k); renderPlot(); renderReadout(); announce(k + ' shuffles added.'); }
+  function addManual(){
+    var raw = $('manual').value.replace(/\u2212/g, '-').replace('%', '').trim();
+    var v = parseFloat(raw);
+    if (!isFinite(v) || Math.abs(v) > 100){ announce('Enter a number of percentage points between -100 and 100.'); $('manual').focus(); return; }
+    results.push(v / 100); lastD = v / 100;
+    $('manual').value = ''; $('manual').focus();
+    renderPlot(); renderReadout();
+    announce('Added ' + pts(v / 100) + ' percentage points.');
+  }
+
+  /* ---------- scenario controls ---------- */
+  function buildSelect(){
+    var sel = $('scenarioSel'), h = '';
+    Object.keys(PRESETS).forEach(function(k){ h += '<option value="' + k + '">' + esc(PRESETS[k].label) + '</option>'; });
+    h += '<option value="custom">Your own data</option>';
+    sel.innerHTML = h;
+  }
+  function fillCustom(){
+    $('cPref').value = sc.pref; $('cAName').value = sc.A.name; $('cBName').value = sc.B.name;
+    $('cAN').value = sc.A.n; $('cAX').value = sc.A.x; $('cBN').value = sc.B.n; $('cBX').value = sc.B.x;
+  }
+  function readCustom(){
+    var n1 = parseInt($('cAN').value, 10), x1 = parseInt($('cAX').value, 10);
+    var n2 = parseInt($('cBN').value, 10), x2 = parseInt($('cBX').value, 10);
+    var msg = $('customMsg');
+    var ok = [n1, x1, n2, x2].every(function(v){ return isFinite(v); });
+    if (!ok){ msg.textContent = 'Fill in all four counts.'; return; }
+    if (n1 < 1 || n2 < 1 || n1 > 120 || n2 > 120){ msg.textContent = 'Each group needs between 1 and 120 students.'; return; }
+    if (x1 < 0 || x2 < 0 || x1 > n1 || x2 > n2){ msg.textContent = 'The number who prefer it can’t be more than the group size.'; return; }
+    var T = x1 + x2;
+    if (T === 0 || T === n1 + n2){ msg.textContent = 'Needs at least one student who prefers it and one who does not.'; return; }
+    msg.textContent = '';
+    sc = {
+      pref: $('cPref').value.trim() || 'Superpower',
+      A: { name: $('cAName').value.trim() || 'Group A', n: n1, x: x1 },
+      B: { name: $('cBName').value.trim() || 'Group B', n: n2, x: x2 }
+    };
+    resetAll();
+  }
+  function onScenario(){
+    var v = $('scenarioSel').value;
+    if (v === 'custom'){
+      $('customBox').hidden = false;
+      $('scenarioHint').textContent = 'Type your real counts. The cards and plot update as you type.';
+      fillCustom();
+      resetAll();
+    } else {
+      $('customBox').hidden = true;
+      $('customMsg').textContent = '';
+      $('scenarioHint').textContent = 'These are example numbers. Choose “Your own data” to enter real counts.';
+      sc = clone(PRESETS[v]);
+      resetAll();
+    }
+  }
+
+  /* ---------- wiring ---------- */
+  function wire(){
+    buildSelect();
+    $('scenarioSel').addEventListener('change', onScenario);
+    ['cPref','cAName','cAN','cAX','cBName','cBN','cBX'].forEach(function(id){ $(id).addEventListener('input', readCustom); });
+    $('primary').addEventListener('click', primary);
+    $('togglePlot').addEventListener('click', function(){ plotShown = !plotShown; applyPlot(); });
+    $('add10').addEventListener('click', function(){ addMany(10); });
+    $('add100').addEventListener('click', function(){ addMany(100); });
+    $('add1000').addEventListener('click', function(){ addMany(1000); });
+    $('undo').addEventListener('click', function(){ if (results.length){ results.pop(); lastD = results.length ? results[results.length - 1] : null; renderPlot(); renderReadout(); } });
+    $('clear').addEventListener('click', function(){ results = []; lastD = null; renderPlot(); renderReadout(); announce('Results cleared.'); });
+    $('addManual').addEventListener('click', addManual);
+    $('manual').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); addManual(); } });
+    $('tailSel').addEventListener('change', function(){ tail = this.value; renderHyp(); renderPlot(); renderReadout(); updateSimGap(); });
+    $('showSentence').addEventListener('change', renderReadout);
+    $('sep').addEventListener('change', renderReadout);
+    $('copy').addEventListener('click', function(){
+      var ta = $('list');
+      function fallback(){ ta.select(); try { document.execCommand('copy'); announce('List copied.'); } catch (err) { announce('Select the list and copy it.'); } }
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(ta.value).then(function(){ announce('List copied.'); }, fallback);
+      } else { fallback(); }
+    });
+    document.addEventListener('keydown', function(e){
+      if ((e.code === 'Space' || e.key === ' ') && document.activeElement === document.body){
+        e.preventDefault(); primary();
+      }
+    });
+    var resizeT;
+    window.addEventListener('resize', function(){ clearTimeout(resizeT); resizeT = setTimeout(renderPlot, 120); });
+  }
+
+  wire();
+  renderAll();
+  window.__shuffleTest = { state: function(){ return { sc: sc, results: results, phase: phase, tail: tail }; }, obsGap: obsGap, isExtreme: isExtreme };
+})();
+</script>
+</body>
+</html>
